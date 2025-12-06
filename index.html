@@ -1,0 +1,3463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>好词好句收集器</title>
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- jsPDF 用于PDF导出 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- HTML2Canvas 用于将HTML转换为图片，确保中文正确显示 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- 统一的 Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4F46E5',
+            secondary: '#10B981',
+            accent: '#F59E0B',
+            neutral: '#6B7280',
+            'light-bg': '#F9FAFB',
+            'card-bg': '#FFFFFF',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.3s ease-in-out',
+            'slide-up': 'slideUp 0.4s ease-out',
+            'pulse-light': 'pulseLight 2s infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            pulseLight: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.7' },
+            },
+          },
+          boxShadow: {
+            'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* 主题变量 */
+    :root {
+      --bg-primary: #F9FAFB;
+      --bg-secondary: #FFFFFF;
+      --text-primary: #1F2937;
+      --text-secondary: #6B7280;
+      --border-color: #E5E7EB;
+      --primary-color: #4F46E5;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+      --card-hover: rgba(0, 0, 0, 0.05);
+    }
+    
+    [data-theme="dark"] {
+      --bg-primary: #111827;
+      --bg-secondary: #1F2937;
+      --text-primary: #F9FAFB;
+      --text-secondary: #D1D5DB;
+      --border-color: #374151;
+      --primary-color: #6366F1;
+      --shadow-color: rgba(0, 0, 0, 0.3);
+      --card-hover: rgba(255, 255, 255, 0.05);
+    }
+    
+    /* 应用主题 */
+    body {
+      background-color: var(--bg-primary) !important;
+      color: var(--text-primary) !important;
+    }
+    
+    .bg-light-bg {
+      background-color: var(--bg-primary) !important;
+    }
+    
+    .bg-white {
+      background-color: var(--bg-secondary) !important;
+    }
+    
+    .text-gray-800 {
+      color: var(--text-primary) !important;
+    }
+    
+    .text-gray-700 {
+      color: var(--text-primary) !important;
+    }
+    
+    .text-gray-600 {
+      color: var(--text-secondary) !important;
+    }
+    
+    .text-gray-500 {
+      color: var(--text-secondary) !important;
+    }
+    
+    .text-gray-400 {
+      color: var(--text-secondary) !important;
+    }
+    
+    .border-gray-300 {
+      border-color: var(--border-color) !important;
+    }
+    
+    .border-gray-100 {
+      border-color: var(--border-color) !important;
+    }
+    
+    .bg-gray-50 {
+      background-color: var(--bg-primary) !important;
+    }
+    
+    .bg-gray-200 {
+      background-color: var(--bg-primary) !important;
+    }
+    
+    .shadow-card {
+      box-shadow: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -1px var(--shadow-color) !important;
+    }
+    
+    .shadow-card-hover {
+      box-shadow: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px var(--shadow-color) !important;
+    }
+    
+    .hover\:bg-gray-50:hover {
+      background-color: var(--bg-primary) !important;
+    }
+    
+    /* 玻璃效果适配 */
+    .glass-effect {
+      background-color: rgba(255, 255, 255, 0.8) !important;
+    }
+    
+    [data-theme="dark"] .glass-effect {
+      background-color: rgba(31, 41, 55, 0.8) !important;
+    }
+    
+    /* 修复Font Awesome图标颜色 */
+    [data-theme="dark"] .fa {
+      color: var(--text-secondary) !important;
+    }
+    
+    /* 修复特定图标颜色 */
+    [data-theme="dark"] .btn-outline .fa {
+      color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] .btn-primary .fa {
+      color: white !important;
+    }
+    
+    [data-theme="dark"] .text-primary .fa {
+      color: var(--primary-color) !important;
+    }
+    
+    [data-theme="dark"] .text-red-500 .fa {
+      color: #ef4444 !important;
+    }
+    
+    [data-theme="dark"] .text-yellow-500 .fa {
+      color: #eab308 !important;
+    }
+    
+    [data-theme="dark"] .text-blue-500 .fa {
+      color: #3b82f6 !important;
+    }
+    
+    /* 修复搜索图标颜色 */
+    [data-theme="dark"] .fa-search {
+      color: var(--text-secondary) !important;
+    }
+    
+    /* 修复编辑和删除按钮图标 */
+      [data-theme="dark"] .edit-btn .fa {
+        color: var(--text-secondary) !important;
+      }
+      
+      [data-theme="dark"] .delete-btn .fa {
+        color: var(--text-secondary) !important;
+      }
+      
+      [data-theme="dark"] .favorite-btn .fa {
+        color: var(--text-secondary) !important;
+      }
+      
+      /* 优化编辑按钮样式，改为标准圆形 */
+      .edit-btn {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 8px !important;
+        margin: 0 !important;
+      }
+      
+      .delete-btn {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 8px !important;
+        margin: 0 !important;
+      }
+      
+      .favorite-btn {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 8px !important;
+        margin: 0 !important;
+      }
+    
+    [data-theme="dark"] .favorite-btn.text-yellow-500 .fa {
+      color: #eab308 !important;
+    }
+    
+    /* 修复设置按钮图标 */
+    [data-theme="dark"] #settingsBtn .fa {
+      color: var(--text-primary) !important;
+    }
+    
+    /* 修复随机推荐按钮图标 */
+    [data-theme="dark"] #randomQuoteBtn .fa {
+      color: var(--text-primary) !important;
+    }
+    
+    /* 修复添加按钮图标 */
+    [data-theme="dark"] #addQuoteBtn .fa {
+      color: white !important;
+    }
+    
+    /* 修复搜索失败状态的图标和图标框颜色 */
+    [data-theme="dark"] .bg-gray-100 {
+      background-color: var(--bg-secondary) !important;
+    }
+    
+    [data-theme="dark"] .text-gray-400 {
+      color: var(--text-primary) !important;
+    }
+    
+    /* 主题切换器样式 */
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap');
+    
+    .switcher {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 244px;
+      max-width: 244px;
+      height: 70px;
+      box-sizing: border-box;
+      padding: 8px 12px 10px;
+      margin: 0 auto;
+      border: none;
+      border-radius: 99em;
+      font-size: var(--fz);
+      background-color: color-mix(in srgb, var(--c-glass) 12%, transparent);
+      backdrop-filter: blur(8px) url(#switcher) saturate(var(--saturation));
+      -webkit-backdrop-filter: blur(8px) saturate(var(--saturation));
+      box-shadow: 
+        inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 10%), transparent),
+        inset 1.8px 3px 0px -2px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent), 
+        inset -2px -2px 0px -2px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 80%), transparent), 
+        inset -3px -8px 1px -6px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 60%), transparent), 
+        inset -0.3px -1px 4px 0px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 12%), transparent), 
+        inset -1.5px 2.5px 0px -2px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 20%), transparent), 
+        inset 0px 3px 4px -2px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 20%), transparent), 
+        inset 2px -6.5px 1px -4px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 10%), transparent), 
+        0px 1px 5px 0px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 10%), transparent), 
+        0px 6px 16px 0px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 8%), transparent);
+      transition: 
+        background-color 400ms 
+          cubic-bezier(1, 0.0, 0.4, 1),
+        box-shadow 400ms
+          cubic-bezier(1, 0.0, 0.4, 1);
+    }
+    
+    .switcher__legend {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      border: 0;
+      padding: 0;
+      white-space: nowrap;
+      clip-path: inset(100%);
+      clip: rect(0 0 0 0);
+      overflow: hidden;
+    }
+    
+    .switcher__input {
+      clip: rect(0 0 0 0);
+      clip-path: inset(100%);
+      height: 1px;
+      width: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+    }
+    
+    .switcher__icon {
+      display: block;
+      width: 100%;
+      transition: scale 200ms cubic-bezier(0.5, 0, 0, 1);
+    }
+    
+    .switcher__filter {
+      position: absolute;
+      width: 0;
+      height: 0;
+      z-index: -1;
+    }
+    
+    .switcher__option {
+      --c: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 16px;
+      width: 68px;
+      height: 100%;
+      box-sizing: border-box;
+      border-radius: 99em;
+      opacity: 1;
+      transition: all 160ms;
+    }
+    
+    .switcher__option:hover {
+      --c: var(--primary-color);
+      cursor: pointer;
+    }
+    
+    .switcher__option:hover .switcher__icon {
+      scale: 1.2;
+    }
+    
+    .switcher__option:has(input:checked) {
+      --c: var(--text-primary);
+      cursor: auto;
+    }
+    
+    .switcher__option:has(input:checked) .switcher__icon {
+      scale: 1;
+    }
+    
+    .switcher::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      display: block;
+      width: 84px;
+      height: calc(100% - 10px);
+      border-radius: 99em;
+      background-color: color-mix(in srgb, var(--c-glass) 36%, transparent);
+      z-index: -1;
+      box-shadow: 
+        inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 10%), transparent),
+        inset 2px 1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent), 
+        inset -1.5px -1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 80%), transparent), 
+        inset -2px -6px 1px -5px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 60%), transparent), 
+        inset -1px 2px 3px -1px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 20%), transparent), 
+        inset 0px -4px 1px -2px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 10%), transparent), 
+        0px 3px 6px 0px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 8%), transparent);
+    }
+    
+    /* 两个选项的切换器样式 */
+    .switcher--two {
+      width: 180px;
+      max-width: 180px;
+      position: relative;
+    }
+    
+    .switcher--two .switcher__option {
+      width: calc(50% - 4px);
+    }
+    
+    /* 完全重置两个选项切换器的滑块样式 */
+    .switcher--two::after {
+      width: calc(50% - 8px) !important;
+      left: 4px !important;
+      right: auto !important;
+      translate: 0 0 !important;
+      animation: none !important;
+      transition: all 400ms cubic-bezier(1, 0.0, 0.4, 1) !important;
+    }
+    
+    /* 选中第一个选项时的样式 */
+    .switcher--two:has(input[c-option="1"]:checked)::after {
+      left: 4px !important;
+      right: auto !important;
+      translate: 0 0 !important;
+      animation: scaleToggle 440ms ease !important;
+    }
+    
+    /* 选中第二个选项时的样式 */
+    .switcher--two:has(input[c-option="2"]:checked)::after {
+      left: auto !important;
+      right: 4px !important;
+      translate: 0 0 !important;
+      animation: scaleToggle2 440ms ease !important;
+    }
+    
+    /* 确保两个选项切换器不应用三个选项的默认样式 */
+    .switcher--two:has(input[c-option="2"]:checked)::after {
+      transform-origin: left !important;
+    }
+    
+    /* 覆盖默认的三个选项样式 */
+    .switcher--two:has(input[c-option="1"]:checked)::after {
+      transform-origin: right !important;
+    }
+    
+    .switcher:has(input[c-option="1"]:checked)::after {
+      translate: 0 0;
+      transform-origin: right;
+      transition: 
+        background-color 400ms 
+          cubic-bezier(1, 0.0, 0.4, 1),
+        box-shadow 400ms
+          cubic-bezier(1, 0.0, 0.4, 1),
+        translate 400ms 
+          cubic-bezier(1, 0.0, 0.4, 1);
+      animation: scaleToggle 440ms ease; 
+    }
+    
+    .switcher:has(input[c-option="2"]:checked)::after {
+      translate: 76px 0;
+      transition: 
+        background-color 400ms 
+          cubic-bezier(1, 0.0, 0.4, 1),
+        box-shadow 400ms
+          cubic-bezier(1, 0.0, 0.4, 1),
+        translate 400ms 
+          cubic-bezier(1, 0.0, 0.4, 1);
+      animation: scaleToggle2 440ms ease; 
+    }
+    
+    .switcher[c-previous="1"]:has(input[c-option="2"]:checked)::after {
+      transform-origin: left;
+    }
+    
+    .switcher[c-previous="3"]:has(input[c-option="2"]:checked)::after {
+      transform-origin: right;
+    }
+    
+    .switcher:has(input[c-option="3"]:checked)::after {
+      translate: 152px 0;
+      transform-origin: left;
+      transition: 
+        background-color 400ms 
+          cubic-bezier(1, 0.0, 0.4, 1),
+        box-shadow 400ms
+          cubic-bezier(1, 0.0, 0.4, 1),
+        translate 400ms 
+          cubic-bezier(1, 0.0, 0.4, 1);
+      animation: scaleToggle3 440ms ease; 
+    }
+    
+    
+    @keyframes scaleToggle {
+      0% { scale: 1 1; }
+      50% { scale: 1.1 1; }
+      100% { scale: 1 1; }
+    }
+    
+    @keyframes scaleToggle2{
+      0% { scale: 1 1; }
+      50% { scale: 1.2 1; }
+      100% { scale: 1 1; }
+    } 
+    
+    @keyframes scaleToggle3 {
+      0% { scale: 1 1; }
+      50% { scale: 1.1 1; }
+      100% { scale: 1 1; }
+    }
+    
+    /* 主题变量 - 与现有主题系统兼容 */
+    :root {
+      --c-glass: var(--border-color);
+      --c-light: var(--bg-secondary);
+      --c-dark: var(--text-primary);
+      --glass-reflex-dark: 1;
+      --glass-reflex-light: 1;
+      --saturation: 150%;
+    }
+    
+    [data-theme="dark"] {
+      --c-glass: var(--border-color);
+      --c-light: var(--bg-secondary);
+      --c-dark: var(--text-primary);
+      --glass-reflex-dark: 2;
+      --glass-reflex-light: 0.3;
+      --saturation: 150%;
+    }
+  </style>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .glass-effect {
+        @apply bg-white bg-opacity-80 backdrop-blur-md;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .transition-all-300 {
+        @apply transition-all duration-300 ease-in-out;
+      }
+      .card-transition {
+        @apply transition-all duration-300 ease-in-out transform hover:-translate-y-1;
+      }
+      .btn-primary {
+        @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+      }
+      .btn-secondary {
+        @apply bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:ring-offset-2;
+      }
+      .btn-accent {
+        @apply bg-accent hover:bg-accent/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2;
+      }
+      .btn-outline {
+        @apply border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2;
+      }
+      .input-field {
+        @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300;
+        background-color: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+      }
+      
+      /* 修复搜索框背景颜色 */
+      #searchInput {
+        background-color: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+      }
+      
+      /* 修复搜索框占位符颜色 */
+      ::placeholder {
+        color: var(--text-secondary) !important;
+      }
+      
+      :-ms-input-placeholder {
+        color: var(--text-secondary) !important;
+      }
+      
+      ::-ms-input-placeholder {
+        color: var(--text-secondary) !important;
+      }
+      
+      [data-theme="dark"] ::placeholder {
+        color: var(--text-secondary) !important;
+      }
+      
+      [data-theme="dark"] :-ms-input-placeholder {
+        color: var(--text-secondary) !important;
+      }
+      
+      [data-theme="dark"] ::-ms-input-placeholder {
+        color: var(--text-secondary) !important;
+      }
+      
+      /* 修复textarea和select元素 */
+      textarea, select {
+        background-color: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+      }
+      
+      /* 修复按钮文字颜色 */
+      [data-theme="dark"] .btn-outline {
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+      }
+      
+      [data-theme="dark"] .btn-outline:hover {
+        background-color: var(--bg-primary) !important;
+      }
+      
+      [data-theme="dark"] .btn-primary {
+        color: white !important;
+      }
+      
+      /* 修复取消按钮文字颜色 */
+      [data-theme="dark"] .btn-outline {
+        color: var(--text-primary) !important;
+      }
+      
+      /* 修复导出和选择文件按钮文字颜色 */
+      [data-theme="dark"] #exportBtn,
+      [data-theme="dark"] #importBtn,
+      [data-theme="dark"] #importActionBtn {
+        color: var(--text-primary) !important;
+      }
+      
+      [data-theme="dark"] #importActionBtn:disabled {
+        color: var(--text-secondary) !important;
+      }
+      
+      /* 修复设置按钮文字颜色 */
+      [data-theme="dark"] #settingsBtn {
+        color: var(--text-primary) !important;
+      }
+      
+      /* 修复随机推荐按钮文字颜色 */
+      [data-theme="dark"] #randomQuoteBtn {
+        color: var(--text-primary) !important;
+      }
+      
+      /* 修复添加内容按钮文字颜色 */
+      [data-theme="dark"] #addQuoteBtn {
+        color: white !important;
+      }
+      
+      /* 修复阅读模式按钮文字和图标颜色 */
+      #readingModeBtn .fa {
+        color: inherit !important;
+        font-size: 16px !important;
+        margin-right: 5px !important;
+      }
+      
+      [data-theme="dark"] #readingModeBtn {
+        color: var(--text-primary) !important;
+      }
+      
+      [data-theme="dark"] #readingModeBtn .fa {
+        color: var(--text-primary) !important;
+      }
+      
+      /* 阅读模式样式 */
+      .reading-mode {
+        background-color: #f8f9fa !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      
+      /* 阅读模式下的顶部导航栏动画 */
+      .reading-mode header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: translateY(0) !important;
+        opacity: 1 !important;
+        background-color: rgba(249, 250, 251, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        transition: all 0.3s ease-in-out !important;
+      }
+      
+      [data-theme="dark"] .reading-mode header {
+        background-color: rgba(17, 24, 39, 0.95) !important;
+      }
+      
+      /* 阅读模式切换时的动画 */
+      body:not(.reading-mode) header {
+        transform: translateY(0) !important;
+        opacity: 1 !important;
+        transition: all 0.3s ease-in-out !important;
+      }
+      
+      [data-theme="dark"] .reading-mode {
+        background-color: #1a1a1a !important;
+      }
+      
+      .reading-mode .bg-white {
+        background-color: transparent !important;
+        box-shadow: none !important;
+      }
+      
+      .reading-mode .shadow-card {
+        box-shadow: none !important;
+      }
+      
+      .reading-mode .card-transition {
+        transform: none !important;
+      }
+      
+      .reading-mode .card-transition:hover {
+        transform: none !important;
+      }
+      
+      .reading-mode .bg-light-bg {
+        background-color: transparent !important;
+      }
+      
+      .reading-mode .reading-mode-card {
+        background-color: var(--bg-secondary) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        margin: 2rem auto !important;
+        padding: 3rem !important;
+        border-radius: 0.5rem !important;
+        width: 800px !important;
+        height: 600px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+      }
+      
+      /* 媒体查询，确保在不同屏幕尺寸下卡片居中显示 */
+      @media (max-width: 820px) {
+        .reading-mode .reading-mode-card {
+          width: 95% !important;
+          height: 500px !important;
+          padding: 2rem !important;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reading-mode .reading-mode-card {
+          width: 98% !important;
+          height: 450px !important;
+          padding: 1.5rem !important;
+        }
+      }
+      
+      /* 翻页按钮样式 */
+      .reading-nav {
+        position: fixed !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 100 !important;
+        background-color: var(--bg-secondary) !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 50px !important;
+        height: 50px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        color: var(--text-primary) !important;
+        font-size: 24px !important;
+      }
+      
+      .reading-nav:hover {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+      }
+      
+      .reading-nav.prev {
+        left: 20px !important;
+      }
+      
+      .reading-nav.next {
+        right: 20px !important;
+      }
+      
+      .tag {
+        @apply inline-block px-2 py-1 text-xs font-medium rounded-full transition-all duration-300;
+      }
+      .tag-clickable {
+        @apply cursor-pointer hover:opacity-80;
+      }
+    }
+  </style>
+</head>
+<body class="bg-light-bg min-h-screen font-sans text-gray-800">
+  <!-- 顶部导航栏 -->
+  <header class="sticky top-0 z-50 glass-effect shadow-sm transition-all duration-300 ease-in-out">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-book text-primary text-2xl"></i>
+        <h1 class="text-xl font-bold text-primary">好词好句收集器</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button id="randomQuoteBtn" class="btn-outline flex items-center space-x-1">
+          <i class="fa fa-random"></i>
+          <span>随机推荐</span>
+        </button>
+        <button id="readingModeBtn" class="btn-outline flex items-center space-x-1">
+          <i class="fa fa-book"></i>
+          <span>阅读模式</span>
+        </button>
+        <button id="settingsBtn" class="btn-outline flex items-center space-x-1">
+          <i class="fa fa-cog"></i>
+          <span>设置</span>
+        </button>
+        <button id="addQuoteBtn" class="btn-primary flex items-center space-x-1">
+          <i class="fa fa-plus"></i>
+          <span>添加内容</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-6">
+    <!-- 搜索和分类筛选 -->
+    <div class="mb-8 bg-white rounded-xl shadow-card p-4 animate-fade-in">
+      <div class="flex flex-col md:flex-row md:items-center gap-4">
+        <div class="relative flex-grow">
+          <div class="relative">
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="搜索好词好句..." 
+              class="input-field w-full"
+              style="padding-left: 3.5rem; padding-right: 1rem; padding-top: 0.5rem; padding-bottom: 0.5rem;"
+            >
+            <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- 筛选下拉菜单 -->
+          <div class="relative">
+            <button id="filterBtn" class="btn-outline flex items-center space-x-1">
+              <i class="fa fa-filter"></i>
+              <span>筛选</span>
+              <i class="fa fa-chevron-down text-xs"></i>
+            </button>
+            <!-- 筛选菜单 -->
+            <div id="filterMenu" class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg py-2 z-50 hidden">
+              <!-- 仅收藏选项 -->
+              <div class="px-4 py-2">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                  <input type="checkbox" id="filterFavorite" class="w-4 h-4 text-primary focus:ring-primary/50">
+                  <span class="text-gray-700">仅显示收藏</span>
+                </label>
+              </div>
+              <!-- 精确匹配选项 -->
+              <div class="px-4 py-2 border-t">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                  <input type="checkbox" id="filterExact" class="w-4 h-4 text-primary focus:ring-primary/50">
+                  <span class="text-gray-700">精确匹配</span>
+                </label>
+              </div>
+              <!-- 日期范围选择 -->
+              <div class="px-4 py-2 border-t">
+                <h4 class="text-sm font-semibold text-gray-700 mb-2">日期范围</h4>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label for="filterDateFrom" class="block text-xs text-gray-500 mb-1">从</label>
+                    <input type="date" id="filterDateFrom" class="input-field text-sm">
+                  </div>
+                  <div>
+                    <label for="filterDateTo" class="block text-xs text-gray-500 mb-1">到</label>
+                    <input type="date" id="filterDateTo" class="input-field text-sm">
+                  </div>
+                </div>
+              </div>
+              <!-- 应用和重置按钮 -->
+              <div class="px-4 py-2 border-t flex justify-end gap-2">
+                <button id="resetFilterBtn" class="text-sm text-gray-500 hover:text-gray-700 transition-colors">重置</button>
+                <button id="applyFilterBtn" class="text-sm text-primary hover:text-primary/80 transition-colors font-medium">应用</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 排序下拉菜单 -->
+          <div class="relative">
+            <button id="sortBtn" class="btn-outline flex items-center space-x-1">
+              <i class="fa fa-sort"></i>
+              <span id="sortText">最新添加</span>
+              <i class="fa fa-chevron-down text-xs"></i>
+            </button>
+            <!-- 排序菜单 -->
+            <div id="sortMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 hidden">
+              <button class="sort-option w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors" data-sort="newest">
+                <i class="fa fa-sort-amount-desc mr-2 text-xs"></i> 最新添加
+              </button>
+              <button class="sort-option w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors" data-sort="oldest">
+                <i class="fa fa-sort-amount-asc mr-2 text-xs"></i> 最早添加
+              </button>
+              <button class="sort-option w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors" data-sort="author-asc">
+                <i class="fa fa-sort-alpha-asc mr-2 text-xs"></i> 作者A-Z
+              </button>
+              <button class="sort-option w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors" data-sort="author-desc">
+                <i class="fa fa-sort-alpha-desc mr-2 text-xs"></i> 作者Z-A
+              </button>
+              <button class="sort-option w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors" data-sort="tag-asc">
+                <i class="fa fa-sort-alpha-asc mr-2 text-xs"></i> 标签A-Z
+              </button>
+              <button class="sort-option w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors" data-sort="tag-desc">
+                <i class="fa fa-sort-alpha-desc mr-2 text-xs"></i> 标签Z-A
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2" id="tagFilterContainer">
+          <!-- 标签将通过JS动态生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 批量操作工具栏 -->
+    <div id="batchActions" class="mb-4 flex items-center justify-between gap-4 hidden">
+      <div class="flex items-center gap-2">
+        <button id="selectAllBtn" class="btn-outline flex items-center space-x-1">
+          <i class="fa fa-check-square-o"></i>
+          <span>全选</span>
+        </button>
+        <span id="selectedCount" class="text-sm text-gray-500">已选择 0 项</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="relative">
+          <button id="batchTagBtn" class="btn-outline flex items-center space-x-1">
+            <i class="fa fa-tags"></i>
+            <span>批量修改标签</span>
+            <i class="fa fa-chevron-down text-xs"></i>
+          </button>
+          <!-- 批量修改标签菜单 -->
+          <div id="batchTagMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 hidden">
+            <div class="px-4 py-2">
+              <select id="batchTagSelect" class="input-field text-sm w-full">
+                <!-- 选项将通过JS动态生成 -->
+              </select>
+            </div>
+            <div class="px-4 py-2 border-t flex justify-end">
+              <button id="applyBatchTagBtn" class="text-sm text-primary hover:text-primary/80 transition-colors font-medium">应用</button>
+            </div>
+          </div>
+        </div>
+        <button id="batchDeleteBtn" class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center space-x-1">
+          <i class="fa fa-trash"></i>
+          <span>批量删除</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 内容展示区 -->
+    <div id="quotesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- 内容将通过JS动态生成 -->
+      <div id="emptyState" class="col-span-full flex flex-col items-center justify-center py-16 text-center animate-fade-in">
+        <div class="bg-primary/10 p-6 rounded-full mb-4">
+          <i class="fa fa-book text-primary text-5xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">你的收藏还是空的</h3>
+        <p class="text-gray-500 mb-6 max-w-md">点击右上角的"添加内容"按钮，开始收集你的第一条好词好句吧！</p>
+        <button id="emptyStateAddBtn" class="btn-primary">
+          <i class="fa fa-plus mr-1"></i> 添加第一条内容
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- 添加/编辑模态框 -->
+  <div id="quoteModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" id="modalOverlay"></div>
+    <div class="relative bg-white rounded-xl shadow-lg w-full max-w-md mx-4 animate-slide-up">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 id="modalTitle" class="text-xl font-bold text-gray-800">添加好词好句</h2>
+          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+        <form id="quoteForm">
+          <input type="hidden" id="quoteId">
+          <div class="mb-4">
+            <label for="quoteContent" class="block text-sm font-medium text-gray-700 mb-1">内容</label>
+            <textarea 
+            id="quoteContent" 
+            rows="4" 
+            placeholder="请输入好词好句..." 
+            class="input-field px-4"
+            required
+          ></textarea>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label for="quoteAuthor" class="block text-sm font-medium text-gray-700 mb-1">作者/出处</label>
+              <input 
+                type="text" 
+                id="quoteAuthor" 
+                placeholder="例如：鲁迅《朝花夕拾》" 
+                class="input-field"
+              >
+            </div>
+            <div>
+          <label for="quoteTagSelect" class="block text-sm font-medium text-gray-700 mb-1">分类标签</label>
+          <div class="space-y-2">
+            <select 
+              id="quoteTagSelect" 
+              class="input-field"
+            >
+              <option value="励志">励志</option>
+              <option value="情感">情感</option>
+              <option value="哲理">哲理</option>
+              <option value="文学">文学</option>
+              <option value="其他">其他</option>
+              <option value="自定义">自定义</option>
+            </select>
+            <div id="customTagContainer" class="hidden">
+              <input 
+                type="text" 
+                id="customQuoteTag" 
+                placeholder="输入自定义标签" 
+                class="input-field"
+              >
+            </div>
+          </div>
+        </div>
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button type="button" id="cancelBtn" class="btn-outline">取消</button>
+            <button type="submit" id="saveBtn" class="btn-primary">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 随机推荐模态框 -->
+  <div id="randomQuoteModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" id="randomModalOverlay"></div>
+    <div class="relative bg-white rounded-xl shadow-lg w-full max-w-3xl mx-4 animate-slide-up">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-gray-800">今日推荐</h2>
+          <button id="closeRandomModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+        <div id="randomQuoteContent" class="mb-4">
+          <!-- 随机内容将通过JS动态生成 -->
+        </div>
+        <div class="flex justify-end">
+          <button id="closeRandomBtn" class="btn-primary">我知道了</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 确认删除模态框 -->
+  <div id="confirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" id="confirmModalOverlay"></div>
+    <div class="relative bg-white rounded-xl shadow-lg w-full max-w-sm mx-4 animate-slide-up">
+      <div class="p-6">
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
+            <i class="fa fa-exclamation-triangle text-red-500 text-xl"></i>
+          </div>
+          <h2 class="text-xl font-bold text-gray-800 mb-2">确认删除</h2>
+          <p class="text-gray-500">你确定要删除这条内容吗？此操作无法撤销。</p>
+        </div>
+        <div class="flex justify-center gap-3">
+          <button id="cancelDeleteBtn" class="btn-outline">取消</button>
+          <button id="confirmDeleteBtn" class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">删除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设置模态框 -->
+  <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" id="settingsModalOverlay"></div>
+    <div class="relative bg-white rounded-xl shadow-lg w-full max-w-2xl mx-4 animate-slide-up max-h-[90vh] overflow-hidden">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4 sticky top-0 bg-white z-10">
+          <h2 class="text-xl font-bold text-gray-800">设置</h2>
+          <button id="closeSettingsBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[calc(90vh-120px)] overflow-y-auto pr-2">
+          <!-- 左侧列 -->
+          <div>
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-3">主题设置</h3>
+              <fieldset class="switcher">
+                <legend class="switcher__legend">Choose theme</legend>
+                <label class="switcher__option">
+                  <input class="switcher__input" type="radio" name="theme" value="light" c-option="1" id="themeLight" />
+                  <svg class="switcher__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36">
+                    <path fill="var(--c)" fill-rule="evenodd" d="M18 12a6 6 0 1 1 0 12 6 6 0 0 1 0-12Zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" clip-rule="evenodd"/>
+                    <path fill="var(--c)" d="M17 6.038a1 1 0 1 1 2 0v3a1 1 0 0 1-2 0v-3ZM24.244 7.742a1 1 0 1 1 1.618 1.176L24.1 11.345a1 1 0 1 1-1.618-1.176l1.763-2.427ZM29.104 13.379a1 1 0 0 1 .618 1.902l-2.854.927a1 1 0 1 1-.618-1.902l2.854-.927ZM29.722 20.795a1 1 0 0 1-.619 1.902l-2.853-.927a1 1 0 1 1 .618-1.902l2.854.927ZM25.862 27.159a1 1 0 0 1-1.618 1.175l-1.763-2.427a1 1 0 1 1 1.618-1.175l1.763 2.427ZM19 30.038a1 1 0 0 1-2 0v-3a1 1 0 1 1 2 0v3ZM11.755 28.334a1 1 0 0 1-1.618-1.175l1.764-2.427a1 1 0 1 1 1.618 1.175l-1.764 2.427ZM6.896 22.697a1 1 0 1 1-.618-1.902l2.853-.927a1 1 0 1 1 .618 1.902l-2.853.927ZM6.278 15.28a1 1 0 1 1 .618-1.901l2.853.927a1 1 0 1 1-.618 1.902l-2.853-.927ZM10.137 8.918a1 1 0 0 1 1.618-1.176l1.764 2.427a1 1 0 0 1-1.618 1.176l-1.764-2.427Z"/>
+                  </svg>
+                </label>
+                <label class="switcher__option">
+                  <input class="switcher__input" type="radio" name="theme" value="dark" c-option="2" id="themeDark" />
+                  <svg class="switcher__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36">
+                    <path fill="var(--c)" d="M12.5 8.473a10.968 10.968 0 0 1 8.785-.97 7.435 7.435 0 0 0-3.737 4.672l-.09.373A7.454 7.454 0 0 0 28.732 20.4a10.97 10.97 0 0 1-5.232 7.125l-.497.27c-5.014 2.566-11.175.916-14.234-3.813l-.295-.483C5.53 18.403 7.13 11.93 12.017 8.77l.483-.297Zm4.234.616a8.946 8.946 0 0 0-2.805.883l-.429.234A9 9 0 0 0 10.206 22.5l.241.395A9 9 0 0 0 22.5 25.794l.416-.255a8.94 8.94 0 0 0 2.167-1.99 9.433 9.433 0 0 1-2.782-.313c-5.043-1.352-8.036-6.535-6.686-11.578l.147-.491c.242-.745.573-1.44.972-2.078Z"/>
+                  </svg>
+                </label>
+                <label class="switcher__option">
+                  <input class="switcher__input" type="radio" name="theme" value="auto" c-option="3" id="themeAuto" />
+                  <svg class="switcher__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36">
+                    <path fill="var(--c)" d="M5 21a1 1 0 0 1 1-1h24a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1ZM12 25a1 1 0 0 1 1-1h10a1 1 0 1 1 0 2H13a1 1 0 0 1-1-1ZM15 29a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2h-4a1 1 0 0 1-1-1ZM18 13a6 6 0 0 1 5.915 7h-2.041A4.005 4.005 0 0 0 18 15a4 4 0 0 0-3.874 5h-2.041A6 6 0 0 1 18 13ZM17 7.038a1 1 0 1 1 2 0v3a1 1 0 0 1-2 0v-3ZM24.244 8.742a1 1 0 1 1 1.618 1.176L24.1 12.345a1 1 0 1 1-1.618-1.176l1.763-2.427ZM29.104 14.379a1 1 0 0 1 .618 1.902l-2.854.927a1 1 0 1 1-.618-1.902l2.854-.927ZM6.278 16.28a1 1 0 1 1 .618-1.901l2.853.927a1 1 0 1 1-.618 1.902l-2.853-.927ZM10.137 9.918a1 1 0 0 1 1.618-1.176l1.764 2.427a1 1 0 0 1-1.618 1.176l-1.764-2.427Z"/>
+                  </svg>
+                </label>
+              <!--   <div class="switcher__toggle"></div> -->
+                <div class="switcher__filter">
+                  <svg>
+                    <filter id="switcher" primitiveUnits="objectBoundingBox">
+                      <feImage result="map" width="100%" height="100%" x="0" y="0" href="data:image/webp;base64,UklGRq4vAABXRUJQVlA4WAoAAAAQAAAA5wEAhwAAQUxQSOYWAAABHAVpGzCrf9t7EiJCYdIGTDpvURGm9n7K+YS32rZ1W8q0LSSEBCQgAQlIwEGGA3CQOAAHSEDCJSEk4KDvUmL31vrYkSX3ufgXEb4gSbKt2LatxlqIgNBBzbM3ikHVkvUvq7btKpaOBCQgIRIiAQeNg46DwgE4oB1QDuKgS0IcXBykXieHkwdjX/4iAhZtK3ErSBYGEelp+4aM/5/+z14+//jLlz/++s/Xr4//kl9C8Ns8DaajU+lPX/74+viv/eWxOXsO+eHL3/88/ut/2b0zref99evjX8NLmNt1fP7178e/jJcw9k3G//XP49/Iy2qaa7328Xkk9ZnWx0VUj3bcyCY4Pi7C6reeEagEohnRCbQQwFmUp9ggYQj8MChjTSI0Ck7G/bh6P5ykNU9yP+10G8I2UAwXeQ96DQwNjqyPu/c4tK+5CtGOK0oM7AH5f767lHpotXVYYI66B+HjMhHj43C5wok3YDH4/vZFZRkB7rNnEfC39WS2Q3K78y525wFNTPf5f+/fN9YI1YyDvjuzV5rQtsfn1Ez1ka3PkeGxOZ6IODxDJqCLpF7vdb9Z3s/ufLr6jf/55zbW3LodwwVVg7Lmao+p3eGcqDFDGuuKnlBZAPSbnkYtTX+mZl2y57Gq85F3tDv7m7/yzpjXHoVA3YUObsHz80W3IUK1E8yRqggxTMzD4If2230ys7RDxWrLu9o9GdSWNwNRC2yMIg+HkTVT3BOZER49XLBMdljemLFMjw8VwZ8OdBti4lWdt7c7dzaSc5yILtztsTMT1GFGn/tysM23nF3xbOsnh/eQGKkxhWGEalljCvWZ+LDE+9t97uqEfb08rdYwZGhheLzG2SJzKS77OIAVgPDjf9jHt6c+0mjinS/v13iz9RV3vsPdmbNG1E+nD6s83jBrBEnlBiTojuJogGJNtzxtsIoD2CFuXYipzhGWHhWqCBSqd7l7GMrnuHzH6910FO+XYwgcDxoFRJNk2GUcpQ6I/GhLmqisuBS6uSFpfAz3Yb9Yatyed7r781ZYfr3+3FfXs1MykSbVcg4GiOKX19SZ9xFRwhG+UZGiROjsXhePVu12fCZTJ3CJ4Z3uXnyxz28RutHa5yCKG6jgfTBPuA9jHL7YdlAa2trNEr7BLANd3qNYcWZqnkvlDe8+F5Q/9k8jCFk17ObrIf0O/5U/iDnqcqA70mURr8FUN5pmQEzDcxuWvOPd1+KrbO4fd0vXK5OTtYEy5C2TA5L4ok6Y31WHR9ZR9lQr6IjwruSd775W6NVa2zz1fir2k1GWnT573Eu3mfMjIikYZkM4MDCnTWbmLrpK/Hs0KD5C8rZ3n0tnw0j76WuU8P1YBIjsvcESbnOQMY+gGC/sd/gG+hKKtDijJHhrcSj/GHa/FZ8oGLXeLx1IW+cgU8pqD0PzMzU3oG5lQ/ZaDPDMYq+aAPSEmHN+JiVIp0haHTvPt77732z5ed2K7NHs9FtCIk4BdNkKLRLvOKlFcw+UiovM4OB5sGgepyML+a4TEu/I29/dFtjJulojJR4Tg71ybApEdca0TSnaumNJyCWH2pjENASlQS/NIXMWtiPV9CHsvuftev08/lemYIcUnHSu6XEMvaBq41tqf/m0siLj7xeXsnBmhxY5z+nCwX4Iu4euTPaE4EQorgogisHrBtsAMdX+Huje7nlx3hMpKovdf+YftDQqytChXfEh7D5nyC8rzNTICINmpK5Ni0ngcAMzpmiYDwOMtmUTiCjvx2S2dIeSguP/QHZ3xYIeGhTt1CsCOIiEuVw8pGjVznDJppuojl30i9RvXccXzmXGj2b3H3XM38c/PZseyeOdplXhFekzZMZ2fUGuIBsKCcgQg4Ikqt4PDTkQiWQtMUBFAEhUH8vuvoAvnvGMCEP4/vMmZA2PnkmAJsQsHeFAIk43F00OS3sa/1TDJTPss2698T+i3V22L3PsIeFAHmWWi1FUh29TqpniVOt5hGA/q40Yubt4yXDEQomvldUNhfuuSvjHzPBysYhBMSmRrpuIUHJhQk5uw5V4EwpMp1NvklGkc03WYeC0KETcZ409HkEcwnEaE3EdNnIcfCb1jjWNfZyhhGH48AvsJ4WL+mYTM5i+yFNyM6PhbkuMGYREv48VihVyHXb9RjoE0HvoOuaO7fxxUYnQj1wB0DOZUagcEXfVkJ/nBgV+vl5yMfFaJs0myb9BjyNSsY9FbwZNq21wEFOEJ8Pk/vO1fSa6bOPZFCMc7grz9YXf8rBBPaK3qUJEfJG1A8nuytO1jg8CvWGEY1Z4o1gb3uEjILmNm5YfMXH3GtvyETX+j4jAXkkaA7FDQIdPzLZOcUJsqLQFxboX/MZ95f7MqPku/6IAGXer6xchZyiqcG2Tw4oSVcO0Q0vqOlmEcpsyBw2pwzcifb6t2th64vASkXGXzY9U7aFvkqJEOWSkEU0oL0FrnOfr432tJ5OtPUG1T0cg5yqNTNFAqKFxl80fxGGPFzIiASv+sEPaGMmewBjUEZNFtVCwzaG3PVSe5l+AIRNeFCzu2+H/7Cp2pbOjRUjNFFMX8ZEGl0D4uNWi4ykocIgBkGF+HAIHRNjAqioi4y7vjPtlTPTMXwl7aQD7gu9yVk+VdBwmVMnljIx4++8hq0qOtmjkwT1+RW4N0LhPQuahKrjGVIMy2hW3lgO8lqoLLBHAaTvRIgaPLNFx5ChJ8hTcsBdO383ouHspeqwelcvfEOELFMF0a+jWZJzZYWqZQlj9FnUeMq37zGWfbwRbvkDKOR0OKzAUNO5y8O+H24nczTdDZniPDwMUgIJDV1sEJn7xWMscorAcT3niXE+kcQS0NUMjkkoiNu43cbvQGGagTd6ycWgkkPbSb0Fi0iiYKTpXlKyTCKKHsWssGuM4dhzIaZqIjXvg2w1xqK8sqkQKhJUqWoGxcXTK4gi12ecTaa8+jmMYItoS41KhA4pbAWS2MyLk3n/lS0c4Cq4KcdLYTv4c3OPQZWJx+B9dSytYPUmGUKbKpg+Oy/g0iGuMDw+WRMjdCftaM30PxVSEW8Y6IeUpcGDoTFyDExFIC0coBCNDjx8XXBMWW53qAz2LgJA7G/zPcBcq5mjyfMo/dYTJMBQ3mkxItV2HHpsltIs49LLZK4w6TscoK/1x8FCEkPvP90Y3XVDu468z/HBkAdUMZLNwt3AqNiHOLQM/EYqMbxAWcgW1Rd5PFOnuX08+iNwt7wFWBWYdpDb3F5inFIe4vlXFLkUO3zVjzvJJWXGJOhyBSxV4O8z1FPBmVgZA7p+Ov5oh0XYD5DazDBODdJHHK3O3U5k2REDOWh7ZQSw6fDLBl4P4hixhuzJpGLmv9Ok/12dnFEMDomZm9pikmMevpvEAvZSq1rPziRSaXHMokc0TwRInpAVh5B7os8LBX4+z8rYaZxxQViQ7bndIOnucpgFahg7nBRTv9mUP1epZ+zzFYkXJvfvxUmkdewGhR3FtEE5gGUdAz8DbBFDQypm3jgUlFMru4RG5VIXGaThK7uZnNNDVq3igkGgQVnnSqodKgLGNEPnkAH3YgM0ABowQ5RsDpa4C8wuMrXP8JeioiBC5//ltLZOuePmXgZauU9FcpsvPvYH5yWt8P65HuRjLI62+zmNH28fZZ4odgbjp6AswlNzd74PbIkojkpXSKKF8h79BOJxhZFhDeSWAvb3D5jw2NtUDppI4eRSg5L7+5bTUdm0e7FZh2BgmZdVY/+WE7DLuqWZm3YvOEoQ0WcIIlI8bckcO2SkgZcHI/f63KJb0uWUR6gtorxgCE5ytH3wRr3kiWHlcdGk/SZO0UU+RYuFrCTjCdUAwGdEouf//Si1AhNmg7ZFRuMR+5qeQAaAdwKrG5O5pUnNAa8Ecb9Y2b6B8Rejwcffv5ii5h69Dhm55nhpJ3o/FYpTL1AWgmLIAG4t3qK8ocYnXxF06Fe0Dtv9kvv/LJZTcg/D4OB1FEtaC+mvh3RNhPLlOg3QniC0jov2Qjw3adeA/2GAIohAxCwSGlTsJ+pkOHU6K0EyY5osnN6tVyv56/OJNAOP9Kvi1wZx55EIcz0F2IYWAkvvDRypWSXUuGExX4QjQt4o5ptXHEaXK4z5RYV1C7cs6aLTigJYW8Lwcrv/R9cHuLsl1cfKzRlB5hgWzp/tpPDUF2sWA4tApdUKqSRX+TTogKnATAH44OLk7d36DCknABBAqTWQQz1QgQeq3EImJiwWdYSahYYXVOJmPCa6LqAvdEojcVT+xjjtNZoCcsYRHnvdK7bf2GreoKKsKDtgn5emh3lGmCdDzkDJPGid3PFAb/Bbwj1MCf2pdZqkSUBwWXgGpLWaUEjFG+0PmcDzclQBH2FDsA+UcILmHrzrHY6DKev0bBOYPD6lGy0Nw60gIAeP8HXWq0vZo5rbFGsYXSDtNb+QnSu7hPyLzvfMcaBTM2oF6rLx2CQaaYSljdEeodTvY2uqwUYvPtFlqNo0wxoWSu/8rQgNHO9WjggPFdxIG3socz0BCkQY1umhJ1oHI/lta72+zuU9tESX3+5++GF3dZeON4RZCnaoHjExonNAkjSXSyOtbbjmATzeZJBoWDR202FweApL78uWpYAitcpVDELbG9a7R9zukHUYYLTBBrysZM7cj0rgs1lgo1EXNwwmS+3P65ZvqICNr2C+AXNaOP04VKUZtyPItDaBCa2hawRB761AYFwgNmPsZRZDcn8OPBuIoKsjgxJOUP9x8f2TEHH5pcKqZXyCi2eduB3r9o1Kg1SSC0/OkCBEld/O5E6gWQmJ1s8jYY4HW5KGgNvD9RZpUY+3vwYBZfyHIM+koswIT86IJ6xCDjzuvo/v0laJA06ySyQbx7adCMiTg4oCWrHkUBFHcAAw8Zs1e1fEhrXkE0UDh/hoYuT/o0/OBjuEg97O4QpJ5B8QMB2u4oo/SPDGuW4Z3fnTbzgoUmpQCeZMIdAzBYuR+p09f9lD88wtshQ9yqJEpJnSslPMpqdjN/n61ba2dIiF+IoGkABIBlxnhcWdVOnY9rvmGIYoJgyI98CQrWXxRfWGzDi3jICiEzX2N3Fgp89vN2GmbsTN0uhJG7la4vt78WCwjaJc8uu+EUg7rMkghSWwuHuP0+4fLvRC0swGQZXSKb5yFmAFyf+7sfhkWMMId2oT4bFT06oNHcBJhNmNZ4dgZrb1ZOFoetT1gjgje0l51XkfExz25Q90Xc0it+06TRIXW1fHOGfK4RQxx2dNtriJ8cyns0pG11RrpikqJIlyA3J8uvXvsBRnhre1fOT2hASX6pqQf5xrRQaPAjJmaCvRIxI85yzm0mnXYKSWHxj0pwsjPavDyPJkuhnWPvoKptc/U9bt8HISJ2y1ag/TVNA6kOmIWEhbSWk0xPEBA4y7en+7Tb3oQPoAj9t+tzyxTpIkdIZ9pEVbOohduiU53ry0Vdw2hDhAgz99R4XF/Llx+Ov+OVrAv3zmzaX2m4cHVUcIP+dEs+U7Yx0qioIrQHrW3QJTXDR2cb3X4uBvxqRw5j5I1q1w2CLsuEwtNSVNQMAZ4l+lziBHy8eAjYEeK3DclFBt3tp1sbmNUO+KqVwSSpcbAdb4ns6h1mxhKtLTEQqgYuMP5RggqzoFXsQYHx/05pvL5HySE1MM6T9QLUUoxv5Rm4OLcKHkl9lvjEAib4QmNwyNqkwjk8uM7LO5cekr1LytEk045FrgejisDNO0G2yPXcEMVzVjdaWEgF5p+JmrETExrlwOEIAkb95UE+WntFZTua82BrGaS6C5uOI6HwKMzADyxqDQTVeqUgUIOyVivuQBABGN8SVzcWbTi+WjiH7EAB35nAKMGup7f4dQVE6QhErT0bSeowYYcX6D4DVExZm3wjn+8cMYf1u78CaZHxkeSIil45UfK3e2eUG8kDbJGM7cVHhlrwU3q84RUQOcXIHaeIjI+ot3Tsgbd44jjvRE0Sksd1EhDvHUEP7nF1H32sz52Ou4/UWAJX9cwEuQF5KSwdFpORCCr5KPanWVWGtGdgg8bevpjyXVDslUNnA/DnQoE2oRFQuKJx2/9es1eAUWd+aB251ZhQl3QkSPbMGRCIbVR05huHlcaC62eRAQ8yoymNW0RTZtFryPwnOa6MH9Iu/N+hZGVgrFO6fcbLFQMgtqHO2MMExdtMOI8penvNgQ1kIf4tBoOgFT0Qe3+7I/l0++DKIjLczbIN4MgrE9g9bqlDsi8G8mke4qmdN3Mr50dzcClH+dbCvsD2v3of3b7ZRzsY/wRMxriY36nlzDfVgswAhnCYDtsSITFClQM1Kw1BvFyTmnCh7J7OkZj+x+cGj7Kji60BplH5QypyMurm06L3JxRmfET0Wv/mVW3PZDnsYbrg9n9aI+6agYZuPj748JQugCkYc+RvXhLjKrSKTAeEiCFdV1FOd3vh1jaUTFO6uPZ3ZNSfvjncFtE0encKTkeU2SWsbhvKL54q0BTvpx8Ti1dAw1jVXKBa56NjOg+jt0Fn851+17mLainZ5viWtCEOleMm9X30Mddnx+59DpVNDZ7JjAlsQHC66PYXeHTJFyTEDDsci4KjA4Gm/ki8gMLEH8cAI19miOaUDWciVwEg9oedUDAYxMuYGDkg9j9e5ZShnz+um4PqZiL1oUkJWXtqlDHJzacvb8wGbkCU/j4Auefwb95hKV5xT+c7Q2St78793VM8mK+z2mks8fKOne2NtQqxRtHTuHsICa4macwO7QASsGcqINdIqT3v3tm0At/A67o6BD2mVbfCoYVAc/XfiLkfHN8rxcO7SdByZqHA6HYXgsUrnS65BP2vndP65L3p5dL4JvF5xtXJnIOMU5DKuStoQ59dsATxnO+RbuizcMTcpgkzqzV3vjuXCbK1992KMc5EaQ7Ko2M49wTsJALU9zDbDFpe/be9XF78rg+Oe4kanJF9J53V665yUcaP84L7vcNeXIJhe4tGIgJWv5jbZSoiER6FyriakY5YRv2d7y7IAuV0T8vu8UYaKk0e0YDJIZmiMqsuvDFQHqGc5+uWA5JAWgdQMxEgsmgUomN/m53l+QfUeGFqWaIFQ8Z0r/Db5DtM6WPYRwvFOKIqbL4QjcoQYF7EAb+drA6XfwI3+Pu6rVGZ1iDEeTq0hU4GHuciUHR1EmRacJiw44+IgA2QerjHCcOfFymK5L9VndX95ZL5g1hteUCIgDBHLwKiBOTJvQJXwTCg64VTcq4koFWfBAr2bA/K84nFQO/zd0PstVbLk/ww2bAWDaGICruS5Qm3DEcBDZyM+2I1hmlALKEAiOA6Tnf9yKl5/3tfiiOSuvPX8+PDV8fTJK7VCZaNqXFT0z547T10hzRrbfkj1XwHDimUYtJnJC3trtCd0vl9Yf5P2OfFR07o5s1Poxa1028bQ179kADrFZAtP9gb6SyIwYRZWxnqICqBkHmbeyuKVfcyVpDP/9+/mH1+HNU7v8q2qebw40v0IIQGEKJGwH8AvcDJTujYPFfR1BukLyb3TX5O6qkv9g7D3WyQHxRpWVIVeTqAXZ06Ik1CG5TYho7ooYOl8j3VEdQmnOwv4vdVWEj1dMf/v5O/6hOboXnGsZR"/>
+                    </filter>
+                  </svg>
+                </div>
+              </fieldset>
+            </div>
+            
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold mb-3">随机推荐来源</h3>
+              <fieldset class="switcher switcher--two">
+                <legend class="switcher__legend">Choose random source</legend>
+                <label class="switcher__option">
+                  <input class="switcher__input" type="radio" name="randomSource" value="local" c-option="1" id="randomSourceLocal" />
+                  <svg class="switcher__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36">
+                    <path fill="var(--c)" d="M18 2a16 16 0 1 0 0 32 16 16 0 0 0 0-32zm0 2a14 14 0 1 1 0 28 14 14 0 0 1 0-28zm-4.4 11.5a1 1 0 0 1 1.4 0l2.3 2.3V10a1 1 0 1 1 2 0v5.8l2.3-2.3a1 1 0 0 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.42z"/>
+                  </svg>
+                </label>
+                <label class="switcher__option">
+                  <input class="switcher__input" type="radio" name="randomSource" value="thirdparty" c-option="2" id="randomSourceThirdparty" />
+                  <svg class="switcher__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36">
+                    <path fill="var(--c)" d="M18 2a16 16 0 1 0 0 32 16 16 0 0 0 0-32zm0 2a14 14 0 1 1 0 28 14 14 0 0 1 0-28zm-4.4 11.5a1 1 0 0 1 1.4 0l2.3 2.3V10a1 1 0 1 1 2 0v5.8l2.3-2.3a1 1 0 0 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.42z"/>
+                  </svg>
+                </label>
+                <div class="switcher__filter">
+                  <svg>
+                    <filter id="switcher-random" primitiveUnits="objectBoundingBox">
+                      <feImage result="map" width="100%" height="100%" x="0" y="0" href="data:image/webp;base64,UklGRq4vAABXRUJQVlA4WAoAAAAQAAAA5wEAhwAAQUxQSOYWAAABHAVpGzCrf9t7EiJCYdIGTDpvURGm9n7K+YS32rZ1W8q0LSSEBCQgAQlIwEGGA3CQOAAHSEDCJSEk4KDvUmL31vrYkSX3ufgXEb4gSbKt2LatxlqIgNBBzbM3ikHVkvUvq7btKpaOBCQgIRIiAQeNg46DwgE4oB1QDuKgS0IcXBykXieHkwdjX/4iAhZtK3ErSBYGEelp+4aM/5/+z14+//jLlz/++s/Xr4//kl9C8Ns8DaajU+lPX/74+viv/eWxOXsO+eHL3/88/ut/2b0zref99evjX8NLmNt1fP7178e/jJcw9k3G//XP49/Iy2qaa7328Xkk9ZnWx0VUj3bcyCY4Pi7C6reeEagEohnRCbQQwFmUp9ggYQj8MChjTSI0Ck7G/bh6P5ykNU9yP+10G8I2UAwXeQ96DQwNjqyPu/c4tK+5CtGOK0oM7AH5f767lHpotXVYYI66B+HjMhHj43C5wok3YDH4/vZFZRkB7rNnEfC39WS2Q3K78y525wFNTPf5f+/fN9YI1YyDvjuzV5rQtsfn1Ez1ka3PkeGxOZ6IODxDJqCLpF7vdb9Z3s/ufLr6jf/55zbW3LodwwVVg7Lmao+p3eGcqDFDGuuKnlBZAPSbnkYtTX+mZl2y57Gq85F3tDv7m7/yzpjXHoVA3YUObsHz80W3IUK1E8yRqggxTMzD4If2230ys7RDxWrLu9o9GdSWNwNRC2yMIg+HkTVT3BOZER49XLBMdljemLFMjw8VwZ8OdBti4lWdt7c7dzaSc5yILtztsTMT1GFGn/tysM23nF3xbOsnh/eQGKkxhWGEalljCvWZ+LDE+9t97uqEfb08rdYwZGhheLzG2SJzKS77OIAVgPDjf9jHt6c+0mjinS/v13iz9RV3vsPdmbNG1E+nD6s83jBrBEnlBiTojuJogGJNtzxtsIoD2CFuXYipzhGWHhWqCBSqd7l7GMrnuHzH6910FO+XYwgcDxoFRJNk2GUcpQ6I/GhLmqisuBS6uSFpfAz3Yb9Yatyed7r781ZYfr3+3FfXs1MykSbVcg4GiOKX19SZ9xFRwhG+UZGiROjsXhePVu12fCZTJ3CJ4Z3uXnyxz28RutHa5yCKG6jgfTBPuA9jHL7YdlAa2trNEr7BLANd3qNYcWZqnkvlDe8+F5Q/9k8jCFk17ObrIf0O/5U/iDnqcqA70mURr8FUN5pmQEzDcxuWvOPd1+KrbO4fd0vXK5OTtYEy5C2TA5L4ok6Y31WHR9ZR9lQr6IjwruSd775W6NVa2zz1fir2k1GWnT573Eu3mfMjIikYZkM4MDCnTWbmLrpK/Hs0KD5C8rZ3n0tnw0j76WuU8P1YBIjsvcESbnOQMY+gGC/sd/gG+hKKtDijJHhrcSj/GHa/FZ8oGLXeLx1IW+cgU8pqD0PzMzU3oG5lQ/ZaDPDMYq+aAPSEmHN+JiVIp0haHTvPt77732z5ed2K7NHs9FtCIk4BdNkKLRLvOKlFcw+UiovM4OB5sGgepyML+a4TEu/I29/dFtjJulojJR4Tg71ybApEdca0TSnaumNJyCWH2pjENASlQS/NIXMWtiPV9CHsvuftev08/lemYIcUnHSu6XEMvaBq41tqf/m0siLj7xeXsnBmhxY5z+nCwX4Iu4euTPaE4EQorgogisHrBtsAMdX+Huje7nlx3hMpKovdf+YftDQqytChXfEh7D5nyC8rzNTICINmpK5Ni0ngcAMzpmiYDwOMtmUTiCjvx2S2dIeSguP/QHZ3xYIeGhTt1CsCOIiEuVw8pGjVznDJppuojl30i9RvXccXzmXGj2b3H3XM38c/PZseyeOdplXhFekzZMZ2fUGuIBsKCcgQg4Ikqt4PDTkQiWQtMUBFAEhUH8vuvoAvnvGMCEP4/vMmZA2PnkmAJsQsHeFAIk43F00OS3sa/1TDJTPss2698T+i3V22L3PsIeFAHmWWi1FUh29TqpniVOt5hGA/q40Yubt4yXDEQomvldUNhfuuSvjHzPBysYhBMSmRrpuIUHJhQk5uw5V4EwpMp1NvklGkc03WYeC0KETcZ409HkEcwnEaE3EdNnIcfCb1jjWNfZyhhGH48AvsJ4WL+mYTM5i+yFNyM6PhbkuMGYREv48VihVyHXb9RjoE0HvoOuaO7fxxUYnQj1wB0DOZUagcEXfVkJ/nBgV+vl5yMfFaJs0myb9BjyNSsY9FbwZNq21wEFOEJ8Pk/vO1fSa6bOPZFCMc7grz9YXf8rBBPaK3qUJEfJG1A8nuytO1jg8CvWGEY1Z4o1gb3uEjILmNm5YfMXH3GtvyETX+j4jAXkkaA7FDQIdPzLZOcUJsqLQFxboX/MZ95f7MqPku/6IAGXer6xchZyiqcG2Tw4oSVcO0Q0vqOlmEcpsyBw2pwzcifb6t2th64vASkXGXzY9U7aFvkqJEOWSkEU0oL0FrnOfr432tJ5OtPUG1T0cg5yqNTNFAqKFxl80fxGGPFzIiASv+sEPaGMmewBjUEZNFtVCwzaG3PVSe5l+AIRNeFCzu2+H/7Cp2pbOjRUjNFFMX8ZEGl0D4uNWi4ykocIgBkGF+HAIHRNjAqioi4y7vjPtlTPTMXwl7aQD7gu9yVk+VdBwmVMnljIx4++8hq0qOtmjkwT1+RW4N0LhPQuahKrjGVIMy2hW3lgO8lqoLLBHAaTvRIgaPLNFx5ChJ8hTcsBdO383ouHspeqwelcvfEOELFMF0a+jWZJzZYWqZQlj9FnUeMq37zGWfbwRbvkDKOR0OKzAUNO5y8O+H24nczTdDZniPDwMUgIJDV1sEJn7xWMscorAcT3niXE+kcQS0NUMjkkoiNu43cbvQGGagTd6ycWgkkPbSb0Fi0iiYKTpXlKyTCKKHsWssGuM4dhzIaZqIjXvg2w1xqK8sqkQKhJUqWoGxcXTK4gi12ecTaa8+jmMYItoS41KhA4pbAWS2MyLk3n/lS0c4Cq4KcdLYTv4c3OPQZWJx+B9dSytYPUmGUKbKpg+Oy/g0iGuMDw+WRMjdCftaM30PxVSEW8Y6IeUpcGDoTFyDExFIC0coBCNDjx8XXBMWW53qAz2LgJA7G/zPcBcq5mjyfMo/dYTJMBQ3mkxItV2HHpsltIs49LLZK4w6TscoK/1x8FCEkPvP90Y3XVDu468z/HBkAdUMZLNwt3AqNiHOLQM/EYqMbxAWcgW1Rd5PFOnuX08+iNwt7wFWBWYdpDb3F5inFIe4vlXFLkUO3zVjzvJJWXGJOhyBSxV4O8z1FPBmVgZA7p+Ov5oh0XYD5DazDBODdJHHK3O3U5k2REDOWh7ZQSw6fDLBl4P4hixhuzJpGLmv9Ok/12dnFEMDomZm9pikmMevpvEAvZSq1rPziRSaXHMokc0TwRInpAVh5B7os8LBX4+z8rYaZxxQViQ7bndIOnucpgFahg7nBRTv9mUP1epZ+zzFYkXJvfvxUmkdewGhR3FtEE5gGUdAz8DbBFDQypm3jgUlFMru4RG5VIXGaThK7uZnNNDVq3igkGgQVnnSqodKgLGNEPnkAH3YgM0ABowQ5RsDpa4C8wuMrXP8JeioiBC5//ltLZOuePmXgZauU9FcpsvPvYH5yWt8P65HuRjLI62+zmNH28fZZ4odgbjp6AswlNzd74PbIkojkpXSKKF8h79BOJxhZFhDeSWAvb3D5jw2NtUDppI4eRSg5L7+5bTUdm0e7FZh2BgmZdVY/+WE7DLuqWZm3YvOEoQ0WcIIlI8bckcO2SkgZcHI/f63KJb0uWUR6gtorxgCE5ytH3wRr3kiWHlcdGk/SZO0UU+RYuFrCTjCdUAwGdEouf//Si1AhNmg7ZFRuMR+5qeQAaAdwKrG5O5pUnNAa8Ecb9Y2b6B8Rejwcffv5ii5h69Dhm55nhpJ3o/FYpTL1AWgmLIAG4t3qK8ocYnXxF06Fe0Dtv9kvv/LJZTcg/D4OB1FEtaC+mvh3RNhPLlOg3QniC0jov2Qjw3adeA/2GAIohAxCwSGlTsJ+pkOHU6K0EyY5osnN6tVyv56/OJNAOP9Kvi1wZx55EIcz0F2IYWAkvvDRypWSXUuGExX4QjQt4o5ptXHEaXK4z5RYV1C7cs6aLTigJYW8Lwcrv/R9cHuLsl1cfKzRlB5hgWzp/tpPDUF2sWA4tApdUKqSRX+TTogKnATAH44OLk7d36DCknABBAqTWQQz1QgQeq3EImJiwWdYSahYYXVOJmPCa6LqAvdEojcVT+xjjtNZoCcsYRHnvdK7bf2GreoKKsKDtgn5emh3lGmCdDzkDJPGid3PFAb/Bbwj1MCf2pdZqkSUBwWXgGpLWaUEjFG+0PmcDzclQBH2FDsA+UcILmHrzrHY6DKev0bBOYPD6lGy0Nw60gIAeP8HXWq0vZo5rbFGsYXSDtNb+QnSu7hPyLzvfMcaBTM2oF6rLx2CQaaYSljdEeodTvY2uqwUYvPtFlqNo0wxoWSu/8rQgNHO9WjggPFdxIG3socz0BCkQY1umhJ1oHI/lta72+zuU9tESX3+5++GF3dZeON4RZCnaoHjExonNAkjSXSyOtbbjmATzeZJBoWDR202FweApL78uWpYAitcpVDELbG9a7R9zukHUYYLTBBrysZM7cj0rgs1lgo1EXNwwmS+3P65ZvqICNr2C+AXNaOP04VKUZtyPItDaBCa2hawRB761AYFwgNmPsZRZDcn8OPBuIoKsjgxJOUP9x8f2TEHH5pcKqZXyCi2eduB3r9o1Kg1SSC0/OkCBEld/O5E6gWQmJ1s8jYY4HW5KGgNvD9RZpUY+3vwYBZfyHIM+koswIT86IJ6xCDjzuvo/v0laJA06ySyQbx7adCMiTg4oCWrHkUBFHcAAw8Zs1e1fEhrXkE0UDh/hoYuT/o0/OBjuEg97O4QpJ5B8QMB2u4oo/SPDGuW4Z3fnTbzgoUmpQCeZMIdAzBYuR+p09f9lD88wtshQ9yqJEpJnSslPMpqdjN/n61ba2dIiF+IoGkABIBlxnhcWdVOnY9rvmGIYoJgyI98CQrWXxRfWGzDi3jICiEzX2N3Fgp89vN2GmbsTN0uhJG7la4vt78WCwjaJc8uu+EUg7rMkghSWwuHuP0+4fLvRC0swGQZXSKb5yFmAFyf+7sfhkWMMId2oT4bFT06oNHcBJhNmNZ4dgZrb1ZOFoetT1gjgje0l51XkfExz25Q90Xc0it+06TRIXW1fHOGfK4RQxx2dNtriJ8cyns0pG11RrpikqJIlyA3J8uvXvsBRnhre1fOT2hASX6pqQf5xrRQaPAjJmaCvRIxI85yzm0mnXYKSWHxj0pwsjPavDyPJkuhnWPvoKptc/U9bt8HISJ2y1ag/TVNA6kOmIWEhbSWk0xPEBA4y7en+7Tb3oQPoAj9t+tzyxTpIkdIZ9pEVbOohduiU53ry0Vdw2hDhAgz99R4XF/Llx+Ov+OVrAv3zmzaX2m4cHVUcIP+dEs+U7Yx0qioIrQHrW3QJTXDR2cb3X4uBvxqRw5j5I1q1w2CLsuEwtNSVNQMAZ4l+lziBHy8eAjYEeK3DclFBt3tp1sbmNUO+KqVwSSpcbAdb4ns6h1mxhKtLTEQqgYuMP5RggqzoFXsQYHx/05pvL5HySE1MM6T9QLUUoxv5Rm4OLcKHkl9lvjEAib4QmNwyNqkwjk8uM7LO5cekr1LytEk045FrgejisDNO0G2yPXcEMVzVjdaWEgF5p+JmrETExrlwOEIAkb95UE+WntFZTua82BrGaS6C5uOI6HwKMzADyxqDQTVeqUgUIOyVivuQBABGN8SVzcWbTi+WjiH7EAB35nAKMGup7f4dQVE6QhErT0bSeowYYcX6D4DVExZm3wjn+8cMYf1u78CaZHxkeSIil45UfK3e2eUG8kDbJGM7cVHhlrwU3q84RUQOcXIHaeIjI+ot3Tsgbd44jjvRE0Sksd1EhDvHUEP7nF1H32sz52Ou4/UWAJX9cwEuQF5KSwdFpORCCr5KPanWVWGtGdgg8bevpjyXVDslUNnA/DnQoE2oRFQuKJx2/9es1eAUWd+aB251ZhQl3QkSPbMGRCIbVR05huHlcaC62eRAQ8yoymNW0RTZtFryPwnOa6MH9Iu/N+hZGVgrFO6fcbLFQMgtqHO2MMExdtMOI8penvNgQ1kIf4tBoOgFT0Qe3+7I/l0++DKIjLczbIN4MgrE9g9bqlDsi8G8mke4qmdN3Mr50dzcClH+dbCvsD2v3of3b7ZRzsY/wRMxriY36nlzDfVgswAhnCYDtsSITFClQM1Kw1BvFyTmnCh7J7OkZj+x+cGj7Kji60BplH5QypyMurm06L3JxRmfET0Wv/mVW3PZDnsYbrg9n9aI+6agYZuPj748JQugCkYc+RvXhLjKrSKTAeEiCFdV1FOd3vh1jaUTFO6uPZ3ZNSfvjncFtE0encKTkeU2SWsbhvKL54q0BTvpx8Ti1dAw1jVXKBa56NjOg+jt0Fn851+17mLainZ5viWtCEOleMm9X30Mddnx+59DpVNDZ7JjAlsQHC66PYXeHTJFyTEDDsci4KjA4Gm/ki8gMLEH8cAI19miOaUDWciVwEg9oedUDAYxMuYGDkg9j9e5ZShnz+um4PqZiL1oUkJWXtqlDHJzacvb8wGbkCU/j4Auefwb95hKV5xT+c7Q2St78793VM8mK+z2mks8fKOne2NtQqxRtHTuHsICa4macwO7QASsGcqINdIqT3v3tm0At/A67o6BD2mVbfCoYVAc/XfiLkfHN8rxcO7SdByZqHA6HYXgsUrnS65BP2vndP65L3p5dL4JvF5xtXJnIOMU5DKuStoQ59dsATxnO+RbuizcMTcpgkzqzV3vjuXCbK1992KMc5EaQ7Ko2M49wTsJALU9zDbDFpe/be9XF78rg+Oe4kanJF9J53V665yUcaP84L7vcNeXIJhe4tGIgJWv5jbZSoiER6FyriakY5YRv2d7y7IAuV0T8vu8UYaKk0e0YDJIZmiMqsuvDFQHqGc5+uWA5JAWgdQMxEgsmgUomN/m53l+QfUeGFqWaIFQ8Z0r/Db5DtM6WPYRwvFOKIqbL4QjcoQYF7EAb+drA6XfwI3+Pu6rVGZ1iDEeTq0hU4GHuciUHR1EmRacJiw44+IgA2QerjHCcOfFymK5L9VndX95ZL5g1hteUCIgDBHLwKiBOTJvQJXwTCg64VTcq4koFWfBAr2bA/K84nFQO/zd0PstVbLk/ww2bAWDaGICruS5Qm3DEcBDZyM+2I1hmlALKEAiOA6Tnf9yKl5/3tfiiOSuvPX8+PDV8fTJK7VCZaNqXFT0z547T10hzRrbfkj1XwHDimUYtJnJC3trtCd0vl9Yf5P2OfFR07o5s1Poxa1028bQ179kADrFZAtP9gb6SyIwYRZWxnqICqBkHmbeyuKVfcyVpDP/9+/mH1+HNU7v8q2qebw40v0IIQGEKJGwH8AvcDJTujYPFfR1BukLyb3TX5O6qkv9g7D3WyQHxRpWVIVeTqAXZ06Ik1CG5TYho7ooYOl8j3VEdQmnOwv4vdVWEj1dMf/v5O/6hOboXnGsZR"/>
+                    </filter>
+                  </svg>
+                </div>
+              </fieldset>
+            </div>
+            
+            <div class="mb-6 border-t pt-6">
+              <h3 class="text-lg font-semibold mb-3">统计信息</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <p class="text-sm text-gray-500 mb-1">总数量</p>
+                  <p class="text-2xl font-bold text-primary" id="totalCount">0</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <p class="text-sm text-gray-500 mb-1">收藏数量</p>
+                  <p class="text-2xl font-bold text-primary" id="favoriteCount">0</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <p class="text-sm text-gray-500 mb-1">分类数量</p>
+                  <p class="text-2xl font-bold text-primary" id="categoryCount">0</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <p class="text-sm text-gray-500 mb-1">本月新增</p>
+                  <p class="text-2xl font-bold text-primary" id="monthlyCount">0</p>
+                </div>
+              </div>
+              <div class="mt-4 bg-gray-50 rounded-lg p-4">
+                <p class="text-sm text-gray-500 mb-2">分类统计</p>
+                <div id="categoryStats" class="grid grid-cols-2 gap-2 text-sm"></div>
+              </div>
+              <div class="mt-4 bg-gray-50 rounded-lg p-4">
+                <p class="text-sm text-gray-500 mb-2">收藏统计</p>
+                <div id="favoriteStats" class="grid grid-cols-2 gap-2 text-sm"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 右侧列 -->
+          <div>
+            <div class="border-t pt-6 md:border-t-0 md:pt-0">
+              <h3 class="text-lg font-semibold mb-3">数据管理</h3>
+              <div class="space-y-4">
+                <div>
+          <p class="text-sm text-gray-500 mb-2">导出当前设备的好词好句到JSON文件</p>
+          <button id="exportBtn" class="btn-outline w-full">
+            <i class="fa fa-download mr-1"></i> 导出数据
+          </button>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 mb-2">导出当前设备的好词好句到PDF文件</p>
+          <button id="exportPdfBtn" class="btn-outline w-full">
+            <i class="fa fa-file-pdf-o mr-1"></i> 导出为PDF
+          </button>
+        </div>
+                <div>
+                  <p class="text-sm text-gray-500 mb-2">从JSON文件导入好词好句（会覆盖现有数据）</p>
+                  <div class="flex gap-2">
+                    <input type="file" id="importFile" accept=".json" class="hidden">
+                    <button id="importBtn" class="btn-outline flex-1">
+                      <i class="fa fa-upload mr-1"></i> 选择文件
+                    </button>
+                    <button id="importActionBtn" class="btn-primary flex-1" disabled>
+                      <i class="fa fa-check mr-1"></i> 导入
+                    </button>
+                  </div>
+                  <p id="importFileName" class="text-xs text-gray-400 mt-1"></p>
+                </div>
+                <div class="border-t pt-4">
+              <p class="text-sm text-red-500 mb-2 font-medium">警告：此操作将永久删除所有数据，无法恢复</p>
+              <button id="deleteAllBtn" class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 w-full">
+                <i class="fa fa-trash mr-1"></i> 删除所有数据
+              </button>
+            </div>
+            <div class="border-t pt-4">
+              <button id="manageTagsBtn" class="btn-outline w-full">
+                <i class="fa fa-tags mr-1"></i> 管理标签
+              </button>
+            </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t sticky bottom-0 bg-white z-10">
+          <button id="cancelSettingsBtn" class="btn-outline">取消</button>
+          <button id="saveSettingsBtn" class="btn-primary">保存设置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 标签管理模态框 -->
+  <div id="tagsModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" id="tagsModalOverlay"></div>
+    <div class="relative bg-white rounded-xl shadow-lg w-full max-w-2xl mx-4 animate-slide-up">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-gray-800">管理标签</h2>
+          <button id="closeTagsBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+        
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold mb-3">所有标签</h3>
+          <div id="tagsList" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+            <!-- 标签将通过JS动态生成 -->
+          </div>
+        </div>
+        
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold mb-3">合并标签</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="sourceTag" class="block text-sm font-medium text-gray-700 mb-1">选择要合并的标签</label>
+              <select id="sourceTag" class="input-field">
+                <!-- 选项将通过JS动态生成 -->
+              </select>
+            </div>
+            <div>
+              <label for="targetTag" class="block text-sm font-medium text-gray-700 mb-1">合并到目标标签</label>
+              <select id="targetTag" class="input-field">
+                <!-- 选项将通过JS动态生成 -->
+              </select>
+            </div>
+          </div>
+          <button id="mergeTagsBtn" class="btn-primary mt-4">
+            <i class="fa fa-compress mr-1"></i> 合并标签
+          </button>
+        </div>
+        
+        <div class="flex justify-end gap-3">
+          <button id="cancelTagsBtn" class="btn-outline">取消</button>
+          <button id="saveTagsBtn" class="btn-primary">保存更改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通知提示 -->
+  <div id="notification" class="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm transform translate-y-full opacity-0 transition-all duration-300 flex items-center gap-3 z-50">
+    <div id="notificationIcon" class="w-6 h-6 flex items-center justify-center rounded-full">
+      <i class="fa" id="notificationIconI"></i>
+    </div>
+    <div>
+      <h3 id="notificationTitle" class="font-medium"></h3>
+      <p id="notificationMessage" class="text-sm text-gray-500"></p>
+    </div>
+    <button id="closeNotificationBtn" class="text-gray-400 hover:text-gray-600 ml-2">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+
+  <script>
+    // 全局变量
+    let quotes = [];
+    let currentFilter = '';
+    let quoteToDelete = null;
+    let isReadingMode = false;
+    let currentPage = 0;
+    let filteredQuotesForReading = [];
+    let settings = {
+      randomSource: 'local', // local 或 thirdparty
+      theme: 'auto', // light, dark, auto
+      tagColors: {} // 标签颜色配置
+    };
+
+    // DOM 元素
+    const quotesContainer = document.getElementById('quotesContainer');
+    const emptyState = document.getElementById('emptyState');
+    const tagFilterContainer = document.getElementById('tagFilterContainer');
+    const searchInput = document.getElementById('searchInput');
+    
+    // 筛选元素
+    const filterBtn = document.getElementById('filterBtn');
+    const filterMenu = document.getElementById('filterMenu');
+    const filterFavorite = document.getElementById('filterFavorite');
+    const filterExact = document.getElementById('filterExact');
+    const filterDateFrom = document.getElementById('filterDateFrom');
+    const filterDateTo = document.getElementById('filterDateTo');
+    const applyFilterBtn = document.getElementById('applyFilterBtn');
+    const resetFilterBtn = document.getElementById('resetFilterBtn');
+    
+    // 筛选状态
+    let filterState = {
+      favorite: false,
+      exact: false,
+      dateFrom: '',
+      dateTo: ''
+    };
+    
+    // 排序元素
+    const sortBtn = document.getElementById('sortBtn');
+    const sortMenu = document.getElementById('sortMenu');
+    const sortText = document.getElementById('sortText');
+    const sortOptions = document.querySelectorAll('.sort-option');
+    
+    // 排序状态
+    let sortState = 'newest'; // newest, oldest, author-asc, author-desc, tag-asc, tag-desc
+    
+    // 批量操作元素
+    const batchActions = document.getElementById('batchActions');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    const batchTagBtn = document.getElementById('batchTagBtn');
+    const batchTagMenu = document.getElementById('batchTagMenu');
+    const batchTagSelect = document.getElementById('batchTagSelect');
+    const applyBatchTagBtn = document.getElementById('applyBatchTagBtn');
+    const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    
+    // 批量操作状态
+    let selectedQuotes = [];
+    let isSelectAll = false;
+    
+    // 模态框元素
+    const quoteModal = document.getElementById('quoteModal');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const addQuoteBtn = document.getElementById('addQuoteBtn');
+    const emptyStateAddBtn = document.getElementById('emptyStateAddBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    
+    // 表单元素
+    const quoteForm = document.getElementById('quoteForm');
+    const quoteId = document.getElementById('quoteId');
+    const quoteContent = document.getElementById('quoteContent');
+    const quoteAuthor = document.getElementById('quoteAuthor');
+    const quoteTagSelect = document.getElementById('quoteTagSelect');
+    const customTagContainer = document.getElementById('customTagContainer');
+    const customQuoteTag = document.getElementById('customQuoteTag');
+    const saveBtn = document.getElementById('saveBtn');
+    
+    // 随机推荐元素
+    const randomQuoteBtn = document.getElementById('randomQuoteBtn');
+    const randomQuoteModal = document.getElementById('randomQuoteModal');
+    const randomModalOverlay = document.getElementById('randomModalOverlay');
+    const closeRandomModalBtn = document.getElementById('closeRandomModalBtn');
+    const closeRandomBtn = document.getElementById('closeRandomBtn');
+    const randomQuoteContent = document.getElementById('randomQuoteContent');
+    
+    // 确认删除元素
+    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    const confirmModalOverlay = document.getElementById('confirmModalOverlay');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    
+    // 设置元素
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const settingsModalOverlay = document.getElementById('settingsModalOverlay');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const randomSourceLocal = document.getElementById('randomSourceLocal');
+    const randomSourceThirdparty = document.getElementById('randomSourceThirdparty');
+    
+    // 主题设置元素
+    const themeLight = document.getElementById('themeLight');
+    const themeDark = document.getElementById('themeDark');
+    const themeAuto = document.getElementById('themeAuto');
+    
+    // 统计元素
+    const totalCount = document.getElementById('totalCount');
+    const categoryCount = document.getElementById('categoryCount');
+    const categoryStats = document.getElementById('categoryStats');
+    
+    // 导入导出元素
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importActionBtn = document.getElementById('importActionBtn');
+    const importFile = document.getElementById('importFile');
+    const importFileName = document.getElementById('importFileName');
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    const manageTagsBtn = document.getElementById('manageTagsBtn');
+    
+    // 标签管理元素
+    const tagsModal = document.getElementById('tagsModal');
+    const tagsModalOverlay = document.getElementById('tagsModalOverlay');
+    const closeTagsBtn = document.getElementById('closeTagsBtn');
+    const cancelTagsBtn = document.getElementById('cancelTagsBtn');
+    const saveTagsBtn = document.getElementById('saveTagsBtn');
+    const tagsList = document.getElementById('tagsList');
+    const sourceTag = document.getElementById('sourceTag');
+    const targetTag = document.getElementById('targetTag');
+    const mergeTagsBtn = document.getElementById('mergeTagsBtn');
+    
+    // 标签数据
+    let tags = [];
+    let tagsToDelete = [];
+    let tagsToEdit = {};
+    
+    // 通知元素
+    const notification = document.getElementById('notification');
+    const notificationIcon = document.getElementById('notificationIcon');
+    const notificationIconI = document.getElementById('notificationIconI');
+    const notificationTitle = document.getElementById('notificationTitle');
+    const notificationMessage = document.getElementById('notificationMessage');
+    const closeNotificationBtn = document.getElementById('closeNotificationBtn');
+
+    // 主题切换器跟踪之前选择 - 与现有主题系统兼容
+    const trackPrevious = (el) => {
+      const radios = el.querySelectorAll('input[type="radio"]');
+      let previousValue = null;
+      
+      // 找到已经选中的radio在初始化
+      const initiallyChecked = el.querySelector('input[type="radio"]:checked');
+      if (initiallyChecked) {
+        previousValue = initiallyChecked.getAttribute("c-option");
+        el.setAttribute('c-previous', previousValue);
+      }
+      
+      radios.forEach(radio => {
+        radio.addEventListener('change', () => {
+          if (radio.checked) {
+            el.setAttribute('c-previous', previousValue ?? '');
+            previousValue = radio.getAttribute("c-option");
+          }
+        });
+      });
+    }
+    
+    // 初始化
+    function init() {
+      // 从localStorage加载数据
+      loadQuotes();
+      loadSettings();
+      
+      // 应用主题
+      applyTheme();
+      
+      // 监听系统主题变化
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+      
+      // 渲染内容
+      renderQuotes();
+      
+      // 渲染标签过滤器
+      renderTagFilters();
+      
+      // 初始化设置UI
+      updateSettingsUI();
+      
+      // 初始化主题切换器
+      const switchers = document.querySelectorAll('.switcher');
+      switchers.forEach(switcher => {
+        trackPrevious(switcher);
+      });
+      
+      // 为主题切换器添加实时生效事件
+      const themeRadios = document.querySelectorAll('input[name="theme"]');
+      themeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          settings.theme = e.target.value;
+          applyTheme();
+          saveSettings();
+        });
+      });
+      
+      // 为随机推荐来源切换器添加实时生效事件
+      const randomSourceRadios = document.querySelectorAll('input[name="randomSource"]');
+      randomSourceRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          settings.randomSource = e.target.value;
+          saveSettings();
+        });
+      });
+      
+      // 添加事件监听器
+      addEventListeners();
+      
+      // 检查是否有足够的内容，如果有，显示随机推荐
+      if (quotes.length >= 5) {
+        checkRandomQuoteTime();
+      }
+    }
+
+    // 从localStorage加载数据
+    function loadQuotes() {
+      const savedQuotes = localStorage.getItem('quotes');
+      if (savedQuotes) {
+        quotes = JSON.parse(savedQuotes);
+      }
+    }
+
+    // 保存数据到localStorage
+    function saveQuotes() {
+      localStorage.setItem('quotes', JSON.stringify(quotes));
+      
+      // 创建自动备份
+      createAutoBackup();
+    }
+    
+    // 创建自动备份
+    function createAutoBackup() {
+      const backupKey = `quotes_backup_${new Date().toISOString().split('T')[0]}`;
+      localStorage.setItem(backupKey, JSON.stringify(quotes));
+      
+      // 保留最近7天的备份
+      cleanupOldBackups();
+    }
+    
+    // 清理旧备份
+    function cleanupOldBackups() {
+      const today = new Date();
+      const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      
+      // 遍历localStorage中的所有键
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('quotes_backup_')) {
+          const backupDateStr = key.replace('quotes_backup_', '');
+          const backupDate = new Date(backupDateStr);
+          
+          // 删除7天前的备份
+          if (backupDate < sevenDaysAgo) {
+            localStorage.removeItem(key);
+          }
+        }
+      }
+    }
+
+    // 从localStorage加载设置
+    function loadSettings() {
+      const savedSettings = localStorage.getItem('settings');
+      if (savedSettings) {
+        settings = { ...settings, ...JSON.parse(savedSettings) };
+      }
+    }
+
+    // 保存设置到localStorage
+    function saveSettings() {
+      localStorage.setItem('settings', JSON.stringify(settings));
+    }
+
+    // 应用主题
+    function applyTheme() {
+      const html = document.documentElement;
+      let theme = settings.theme;
+      
+      // 如果是auto，检测系统主题
+      if (theme === 'auto') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = prefersDark ? 'dark' : 'light';
+      }
+      
+      // 应用主题
+      html.setAttribute('data-theme', theme);
+    }
+
+    // 更新设置UI
+    function updateSettingsUI() {
+      // 更新主题设置
+      if (settings.theme === 'light') {
+        themeLight.checked = true;
+      } else if (settings.theme === 'dark') {
+        themeDark.checked = true;
+      } else {
+        themeAuto.checked = true;
+      }
+      
+      // 更新随机推荐设置
+      if (settings.randomSource === 'local') {
+        randomSourceLocal.checked = true;
+      } else {
+        randomSourceThirdparty.checked = true;
+      }
+    }
+
+    // 渲染内容
+    function renderQuotes() {
+      // 清空容器
+      quotesContainer.innerHTML = '';
+      
+      // 检查是否有内容
+      if (quotes.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      
+      // 隐藏空状态
+      emptyState.classList.add('hidden');
+      
+      // 渲染批量标签选择器
+      renderBatchTagSelect();
+      
+      // 筛选内容
+      let filteredQuotes = quotes;
+      
+      // 应用标签筛选
+      if (currentFilter === 'favorite') {
+        filteredQuotes = filteredQuotes.filter(quote => quote.favorite);
+      } else if (currentFilter) {
+        filteredQuotes = filteredQuotes.filter(quote => 
+          quote.tag.toLowerCase() === currentFilter.toLowerCase()
+        );
+      }
+      
+      // 应用搜索筛选
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      if (searchTerm) {
+        if (filterState.exact) {
+          // 精确匹配
+          filteredQuotes = filteredQuotes.filter(quote => 
+            quote.content.toLowerCase() === searchTerm || 
+            quote.author.toLowerCase() === searchTerm || 
+            quote.tag.toLowerCase() === searchTerm
+          );
+        } else {
+          // 包含匹配
+          filteredQuotes = filteredQuotes.filter(quote => 
+            quote.content.toLowerCase().includes(searchTerm) || 
+            quote.author.toLowerCase().includes(searchTerm) || 
+            quote.tag.toLowerCase().includes(searchTerm)
+          );
+        }
+      }
+      
+      // 应用收藏筛选
+      if (filterState.favorite) {
+        filteredQuotes = filteredQuotes.filter(quote => quote.favorite);
+      }
+      
+      // 应用日期范围筛选
+      if (filterState.dateFrom || filterState.dateTo) {
+        filteredQuotes = filteredQuotes.filter(quote => {
+          const quoteDate = new Date(quote.createdAt || quote.updatedAt || new Date());
+          let matches = true;
+          
+          if (filterState.dateFrom) {
+            const fromDate = new Date(filterState.dateFrom);
+            matches = quoteDate >= fromDate;
+          }
+          
+          if (matches && filterState.dateTo) {
+            const toDate = new Date(filterState.dateTo);
+            toDate.setHours(23, 59, 59, 999);
+            matches = quoteDate <= toDate;
+          }
+          
+          return matches;
+        });
+      }
+      
+      // 应用排序
+      switch (sortState) {
+        case 'newest':
+          // 最新添加
+          filteredQuotes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          break;
+        case 'oldest':
+          // 最早添加
+          filteredQuotes.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+          break;
+        case 'author-asc':
+          // 作者A-Z
+          filteredQuotes.sort((a, b) => (a.author || '').localeCompare(b.author || ''));
+          break;
+        case 'author-desc':
+          // 作者Z-A
+          filteredQuotes.sort((a, b) => (b.author || '').localeCompare(a.author || ''));
+          break;
+        case 'tag-asc':
+          // 标签A-Z
+          filteredQuotes.sort((a, b) => a.tag.localeCompare(b.tag));
+          break;
+        case 'tag-desc':
+          // 标签Z-A
+          filteredQuotes.sort((a, b) => b.tag.localeCompare(a.tag));
+          break;
+      }
+      
+      // 检查筛选后是否有内容
+      if (filteredQuotes.length === 0) {
+        quotesContainer.innerHTML = `
+          <div class="col-span-full flex flex-col items-center justify-center py-16 text-center animate-fade-in">
+            <div class="bg-gray-100 p-6 rounded-full mb-4">
+              <i class="fa fa-search text-gray-400 text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">未找到匹配内容</h3>
+            <p class="text-gray-500 mb-6 max-w-md">尝试调整搜索关键词或标签筛选</p>
+            <button id="clearFiltersBtn" class="btn-outline">
+              <i class="fa fa-refresh mr-1"></i> 清除筛选
+            </button>
+          </div>
+        `;
+        
+        // 添加清除筛选按钮事件
+      document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+        searchInput.value = '';
+        currentFilter = '';
+        clearFilters();
+        renderTagFilters();
+        renderQuotes();
+      });
+        
+        return;
+      }
+      
+      // 渲染内容卡片
+      filteredQuotes.forEach(quote => {
+        const quoteCard = createQuoteCard(quote);
+        quotesContainer.appendChild(quoteCard);
+      });
+    }
+
+    // 创建内容卡片
+    function createQuoteCard(quote) {
+      const card = document.createElement('div');
+      let cardClass = '';
+      
+      if (isReadingMode) {
+        cardClass = 'bg-white rounded-xl shadow-card p-6 animate-fade-in border-l-4 border-primary/20 reading-mode-card';
+      } else {
+        cardClass = 'bg-white rounded-xl shadow-card hover:shadow-card-hover card-transition p-6 animate-fade-in border-l-4 border-primary/20';
+      }
+      
+      card.className = cardClass;
+      card.setAttribute('data-id', quote.id);
+      card.setAttribute('data-tag', quote.tag);
+      
+      // 获取标签颜色
+      const tagColor = getTagColor(quote.tag);
+      
+      // 检查是否有更新时间
+      const hasUpdated = quote.updatedAt && quote.updatedAt !== quote.createdAt;
+      
+      card.innerHTML = `
+        <div class="flex justify-between items-start mb-3">
+          <div class="flex items-center space-x-2">
+            <input type="checkbox" class="quote-checkbox w-4 h-4 text-primary focus:ring-primary/50" data-id="${quote.id}">
+            <span class="tag ${tagColor.bg} ${tagColor.text} px-3 py-1 font-medium">${quote.tag}</span>
+          </div>
+          <div class="flex space-x-2">
+            <button class="favorite-btn ${quote.favorite ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-500 transition-colors p-1 rounded-full hover:bg-yellow-10" title="${quote.favorite ? '取消收藏' : '收藏'}">
+              <i class="fa ${quote.favorite ? 'fa-star' : 'fa-star-o'}"></i>
+            </button>
+            <button class="edit-btn text-gray-400 hover:text-primary transition-colors p-1 rounded-full hover:bg-primary/10" title="编辑">
+              <i class="fa fa-pencil"></i>
+            </button>
+            <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-10" title="删除">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <blockquote class="text-lg italic text-gray-700 mb-4 leading-relaxed">
+          "${quote.content}"
+        </blockquote>
+        ${quote.author ? `<p class="text-right text-gray-600 font-medium mb-3">— ${quote.author}</p>` : ''}
+        <div class="flex justify-between items-center text-xs text-gray-400 mt-4 pt-4 border-t border-gray-100">
+          <div class="flex items-center space-x-2">
+            <span>添加于 ${formatDate(quote.createdAt)}</span>
+            ${hasUpdated ? `<span class="text-gray-300">•</span><span>更新于 ${formatDate(quote.updatedAt)}</span>` : ''}
+          </div>
+          <div class="flex items-center space-x-1">
+            <span class="text-gray-500 mr-1">评分:</span>
+            <div class="flex rating-stars" data-id="${quote.id}">
+              ${[1, 2, 3, 4, 5].map(star => `
+                <i class="fa fa-star ${quote.rating >= star ? 'text-yellow-500' : 'text-gray-300'}" data-rating="${star}"></i>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 添加收藏按钮事件
+      card.querySelector('.favorite-btn').addEventListener('click', () => {
+        toggleFavorite(quote.id);
+      });
+      
+      // 添加编辑按钮事件
+      card.querySelector('.edit-btn').addEventListener('click', () => {
+        openEditModal(quote);
+      });
+      
+      // 添加删除按钮事件
+      card.querySelector('.delete-btn').addEventListener('click', () => {
+        openConfirmDeleteModal(quote.id);
+      });
+      
+      // 添加复选框事件
+      const checkbox = card.querySelector('.quote-checkbox');
+      if (checkbox) {
+        checkbox.addEventListener('change', () => {
+          updateSelectedQuotes();
+        });
+      }
+      
+      // 添加评分星星事件
+      const ratingStars = card.querySelector('.rating-stars');
+      if (ratingStars) {
+        ratingStars.addEventListener('click', (e) => {
+          if (e.target.classList.contains('fa-star')) {
+            const rating = parseInt(e.target.dataset.rating);
+            updateQuoteRating(quote.id, rating);
+          }
+        });
+      }
+      
+      return card;
+    }
+    
+    // 更新评分
+    function updateQuoteRating(id, rating) {
+      const index = quotes.findIndex(quote => quote.id === id);
+      if (index !== -1) {
+        quotes[index].rating = rating;
+        quotes[index].updatedAt = new Date().toISOString();
+        
+        // 保存数据
+        saveQuotes();
+        
+        // 重新渲染
+        renderQuotes();
+      }
+    }
+    
+    // 更新选中的内容
+    function updateSelectedQuotes() {
+      const checkboxes = document.querySelectorAll('.quote-checkbox:checked');
+      selectedQuotes = Array.from(checkboxes).map(checkbox => checkbox.dataset.id);
+      
+      // 更新选中数量
+      selectedCount.textContent = `已选择 ${selectedQuotes.length} 项`;
+      
+      // 显示或隐藏批量操作工具栏
+      if (selectedQuotes.length > 0) {
+        batchActions.classList.remove('hidden');
+      } else {
+        batchActions.classList.add('hidden');
+      }
+    }
+    
+    // 全选/取消全选
+    function toggleSelectAll() {
+      const checkboxes = document.querySelectorAll('.quote-checkbox');
+      const isAllChecked = selectedQuotes.length === checkboxes.length;
+      
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = !isAllChecked;
+      });
+      
+      updateSelectedQuotes();
+      
+      // 更新全选按钮文本和图标
+      if (!isAllChecked) {
+        selectAllBtn.innerHTML = '<i class="fa fa-check-square"></i><span>取消全选</span>';
+      } else {
+        selectAllBtn.innerHTML = '<i class="fa fa-square-o"></i><span>全选</span>';
+      }
+    }
+    
+    // 批量删除
+    function batchDelete() {
+      if (selectedQuotes.length === 0) return;
+      
+      // 确认删除
+      if (confirm(`确定要删除选中的 ${selectedQuotes.length} 项内容吗？此操作无法撤销。`)) {
+        // 删除选中的内容
+        quotes = quotes.filter(quote => !selectedQuotes.includes(quote.id));
+        
+        // 保存数据
+        saveQuotes();
+        
+        // 重新渲染
+        renderQuotes();
+        renderTagFilters();
+        
+        // 显示成功通知
+        showNotification('成功', `已删除 ${selectedQuotes.length} 项内容`, 'success');
+      }
+    }
+    
+    // 批量修改标签
+    function applyBatchTag() {
+      const newTag = batchTagSelect.value;
+      if (!newTag || selectedQuotes.length === 0) return;
+      
+      // 更新选中内容的标签
+      quotes.forEach(quote => {
+        if (selectedQuotes.includes(quote.id)) {
+          quote.tag = newTag;
+        }
+      });
+      
+      // 保存数据
+      saveQuotes();
+      
+      // 重新渲染
+      renderQuotes();
+      renderTagFilters();
+      
+      // 显示成功通知
+      showNotification('成功', `已更新 ${selectedQuotes.length} 项内容的标签`, 'success');
+    }
+    
+    // 渲染批量操作标签选择器
+    function renderBatchTagSelect() {
+      // 获取所有唯一标签
+      const uniqueTags = [...new Set(quotes.map(quote => quote.tag))].filter(tag => tag);
+      
+      // 清空选择器
+      batchTagSelect.innerHTML = '';
+      
+      // 添加默认选项
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = '选择标签';
+      batchTagSelect.appendChild(defaultOption);
+      
+      // 添加标签选项
+      uniqueTags.forEach(tag => {
+        const option = document.createElement('option');
+        option.value = tag;
+        option.textContent = tag;
+        batchTagSelect.appendChild(option);
+      });
+    }
+
+    // 渲染标签过滤器
+    function renderTagFilters() {
+      // 清空容器
+      tagFilterContainer.innerHTML = '';
+      
+      // 获取所有唯一标签
+      const tags = [...new Set(quotes.map(quote => quote.tag))].filter(tag => tag);
+      
+      // 添加"全部"标签
+      const allTagBtn = document.createElement('button');
+      allTagBtn.className = `tag ${currentFilter === '' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700'} tag-clickable`;
+      allTagBtn.textContent = '全部';
+      allTagBtn.addEventListener('click', () => {
+        currentFilter = '';
+        renderTagFilters();
+        renderQuotes();
+      });
+      tagFilterContainer.appendChild(allTagBtn);
+      
+      // 添加"收藏"标签
+      const favoriteTagBtn = document.createElement('button');
+      favoriteTagBtn.className = `tag ${currentFilter === 'favorite' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-200 text-gray-700'} tag-clickable`;
+      favoriteTagBtn.innerHTML = '<i class="fa fa-star mr-1"></i> 收藏';
+      favoriteTagBtn.addEventListener('click', () => {
+        currentFilter = 'favorite';
+        renderTagFilters();
+        renderQuotes();
+      });
+      tagFilterContainer.appendChild(favoriteTagBtn);
+      
+      // 添加分隔符
+      const divider = document.createElement('span');
+      divider.className = 'text-gray-400';
+      divider.textContent = '|';
+      tagFilterContainer.appendChild(divider);
+      
+      // 添加各个标签
+      tags.forEach(tag => {
+        const tagColor = getTagColor(tag);
+        const tagBtn = document.createElement('button');
+        tagBtn.className = `tag ${currentFilter === tag ? tagColor.bg : 'bg-gray-200'} ${currentFilter === tag ? tagColor.text : 'text-gray-700'} tag-clickable`;
+        tagBtn.textContent = tag;
+        tagBtn.addEventListener('click', () => {
+          currentFilter = tag;
+          renderTagFilters();
+          renderQuotes();
+        });
+        tagFilterContainer.appendChild(tagBtn);
+      });
+    }
+
+    // 获取标签颜色
+    function getTagColor(tag) {
+      // 检查是否有自定义颜色
+      if (settings.tagColors && settings.tagColors[tag]) {
+        return settings.tagColors[tag];
+      }
+      
+      // 为不同的标签分配不同的颜色
+      const colors = [
+        { bg: 'bg-blue-100', text: 'text-blue-800' },
+        { bg: 'bg-green-100', text: 'text-green-800' },
+        { bg: 'bg-purple-100', text: 'text-purple-800' },
+        { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+        { bg: 'bg-red-100', text: 'text-red-800' },
+        { bg: 'bg-pink-100', text: 'text-pink-800' },
+        { bg: 'bg-indigo-100', text: 'text-indigo-800' },
+        { bg: 'bg-teal-100', text: 'text-teal-800' },
+      ];
+      
+      // 使用标签的哈希码来选择颜色
+      let hash = 0;
+      for (let i = 0; i < tag.length; i++) {
+        hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      
+      return colors[Math.abs(hash) % colors.length];
+    }
+
+    // 格式化日期
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    // 打开添加模态框
+    function openAddModal() {
+      modalTitle.textContent = '添加好词好句';
+      saveBtn.textContent = '保存';
+      resetForm();
+      quoteModal.classList.remove('hidden');
+      quoteContent.focus();
+    }
+
+    // 打开编辑模态框
+    function openEditModal(quote) {
+      modalTitle.textContent = '编辑内容';
+      saveBtn.textContent = '更新';
+      quoteId.value = quote.id;
+      quoteContent.value = quote.content;
+      quoteAuthor.value = quote.author || '';
+      
+      // 设置分类标签
+      const predefinedTags = ['励志', '情感', '哲理', '文学', '其他'];
+      if (predefinedTags.includes(quote.tag)) {
+        quoteTagSelect.value = quote.tag;
+        customTagContainer.classList.add('hidden');
+      } else {
+        quoteTagSelect.value = '自定义';
+        customTagContainer.classList.remove('hidden');
+        customQuoteTag.value = quote.tag || '';
+      }
+      
+      quoteModal.classList.remove('hidden');
+      quoteContent.focus();
+    }
+
+    // 处理分类选择变化
+    function handleTagSelectChange() {
+      if (quoteTagSelect.value === '自定义') {
+        customTagContainer.classList.remove('hidden');
+        customQuoteTag.focus();
+      } else {
+        customTagContainer.classList.add('hidden');
+      }
+    }
+    
+    // 重置表单
+    function resetForm() {
+      quoteForm.reset();
+      quoteId.value = '';
+      customTagContainer.classList.add('hidden');
+    }
+    
+    // 关闭模态框
+    function closeModal() {
+      quoteModal.classList.add('hidden');
+      resetForm();
+    }
+
+    // 调用一言API获取随机推荐
+    async function fetchHitokoto() {
+      try {
+        const response = await fetch('https://v1.hitokoto.cn/');
+        const data = await response.json();
+        
+        // 渲染随机内容
+        randomQuoteContent.innerHTML = `
+          <div class="mb-4">
+            <span class="tag bg-blue-100 text-blue-800">第三方API</span>
+          </div>
+          <blockquote class="text-lg italic text-gray-700 mb-4">
+            "${data.hitokoto}"
+          </blockquote>
+          ${data.from_who ? `<p class="text-right text-gray-500">— ${data.from_who}</p>` : ''}
+        `;
+        
+        // 显示模态框
+        randomQuoteModal.classList.remove('hidden');
+        
+        // 记录已显示
+        localStorage.setItem('lastRandomQuoteDate', new Date().toISOString().split('T')[0]);
+      } catch (error) {
+        console.error('获取一言失败:', error);
+        showNotification('错误', '获取第三方推荐失败，请稍后重试', 'error');
+      }
+    }
+
+    // 打开随机推荐模态框
+    function openRandomQuoteModal() {
+      if (settings.randomSource === 'thirdparty') {
+        // 使用第三方API
+        fetchHitokoto();
+      } else {
+        // 使用本地数据
+        if (quotes.length === 0) {
+          showNotification('提示', '你还没有添加任何内容', 'info');
+          return;
+        }
+        
+        // 获取随机内容
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        
+        // 获取标签颜色
+        const tagColor = getTagColor(randomQuote.tag);
+        
+        // 渲染随机内容
+        randomQuoteContent.innerHTML = `
+          <div class="mb-4">
+            <span class="tag ${tagColor.bg} ${tagColor.text}">${randomQuote.tag}</span>
+          </div>
+          <blockquote class="text-lg italic text-gray-700 mb-4">
+            "${randomQuote.content}"
+          </blockquote>
+          ${randomQuote.author ? `<p class="text-right text-gray-500">— ${randomQuote.author}</p>` : ''}
+        `;
+        
+        // 显示模态框
+        randomQuoteModal.classList.remove('hidden');
+        
+        // 记录已显示
+        localStorage.setItem('lastRandomQuoteDate', new Date().toISOString().split('T')[0]);
+      }
+    }
+
+    // 关闭随机推荐模态框
+    function closeRandomQuoteModal() {
+      randomQuoteModal.classList.add('hidden');
+    }
+
+    // 打开确认删除模态框
+    function openConfirmDeleteModal(id) {
+      quoteToDelete = id;
+      confirmDeleteModal.classList.remove('hidden');
+    }
+
+    // 关闭确认删除模态框
+    function closeConfirmDeleteModal() {
+      confirmDeleteModal.classList.add('hidden');
+      quoteToDelete = null;
+    }
+
+    // 保存内容
+    function saveQuote(e) {
+      e.preventDefault();
+      
+      const content = quoteContent.value.trim();
+      const author = quoteAuthor.value.trim();
+      
+      // 获取标签值
+      let tag;
+      if (quoteTagSelect.value === '自定义') {
+        tag = customQuoteTag.value.trim() || '未分类';
+      } else {
+        tag = quoteTagSelect.value;
+      }
+      
+      if (!content) {
+        showNotification('错误', '内容不能为空', 'error');
+        return;
+      }
+      
+      if (quoteId.value) {
+        // 编辑现有内容
+        const index = quotes.findIndex(quote => quote.id === quoteId.value);
+        if (index !== -1) {
+          quotes[index] = {
+            ...quotes[index],
+            content,
+            author,
+            tag,
+            updatedAt: new Date().toISOString()
+          };
+          showNotification('成功', '内容已更新', 'success');
+        }
+      } else {
+        // 添加新内容
+        const newQuote = {
+          id: generateId(),
+          content,
+          author,
+          tag,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        quotes.unshift(newQuote); // 添加到开头
+        showNotification('成功', '内容已添加', 'success');
+      }
+      
+      // 保存数据
+      saveQuotes();
+      
+      // 重新渲染
+      renderQuotes();
+      renderTagFilters();
+      
+      // 关闭模态框
+      closeModal();
+    }
+
+    // 切换收藏状态
+    function toggleFavorite(id) {
+      const index = quotes.findIndex(quote => quote.id === id);
+      if (index !== -1) {
+        quotes[index].favorite = !quotes[index].favorite;
+        
+        // 保存数据
+        saveQuotes();
+        
+        // 重新渲染
+        renderQuotes();
+        renderTagFilters();
+        
+        // 显示通知
+        showNotification('成功', quotes[index].favorite ? '已添加到收藏' : '已取消收藏', 'success');
+      }
+    }
+
+    // 删除内容
+    function deleteQuote() {
+      if (!quoteToDelete) return;
+      
+      const index = quotes.findIndex(quote => quote.id === quoteToDelete);
+      if (index !== -1) {
+        quotes.splice(index, 1);
+        
+        // 保存数据
+        saveQuotes();
+        
+        // 重新渲染
+        renderQuotes();
+        renderTagFilters();
+        
+        // 显示通知
+        showNotification('成功', '内容已删除', 'success');
+      }
+      
+      // 关闭模态框
+      closeConfirmDeleteModal();
+    }
+
+    // 生成唯一ID
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    }
+
+    // 显示通知
+    function showNotification(title, message, type = 'info') {
+      // 设置通知类型
+      let iconClass = 'fa-info-circle';
+      let bgColor = 'bg-blue-500';
+      
+      switch (type) {
+        case 'success':
+          iconClass = 'fa-check-circle';
+          bgColor = 'bg-green-500';
+          break;
+        case 'error':
+          iconClass = 'fa-exclamation-circle';
+          bgColor = 'bg-red-500';
+          break;
+        case 'warning':
+          iconClass = 'fa-exclamation-triangle';
+          bgColor = 'bg-yellow-500';
+          break;
+      }
+      
+      // 设置通知内容
+      notificationIcon.className = `w-6 h-6 flex items-center justify-center rounded-full ${bgColor} text-white`;
+      notificationIconI.className = `fa ${iconClass}`;
+      notificationTitle.textContent = title;
+      notificationMessage.textContent = message;
+      
+      // 显示通知
+      notification.classList.remove('translate-y-full', 'opacity-0');
+      
+      // 自动隐藏
+      const hideTimeout = setTimeout(() => {
+        hideNotification();
+      }, 3000);
+      
+      // 存储超时ID，以便可以取消
+      notification.dataset.hideTimeout = hideTimeout;
+    }
+
+    // 隐藏通知
+    function hideNotification() {
+      // 清除超时
+      if (notification.dataset.hideTimeout) {
+        clearTimeout(parseInt(notification.dataset.hideTimeout));
+      }
+      
+      // 隐藏通知
+      notification.classList.add('translate-y-full', 'opacity-0');
+    }
+
+    // 检查随机推荐时间
+    function checkRandomQuoteTime() {
+      const lastDate = localStorage.getItem('lastRandomQuoteDate');
+      const today = new Date().toISOString().split('T')[0];
+      
+      // 如果今天还没有显示过随机推荐，并且有足够的内容
+      if (!lastDate || lastDate !== today) {
+        // 延迟显示，让页面先加载完成
+        setTimeout(() => {
+          openRandomQuoteModal();
+        }, 1500);
+      }
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      // 计算总数量
+      const total = quotes.length;
+      totalCount.textContent = total;
+      
+      // 计算收藏数量
+      const favoriteCount = quotes.filter(quote => quote.favorite).length;
+      document.getElementById('favoriteCount').textContent = favoriteCount;
+      
+      // 计算本月新增数量
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const monthlyCount = quotes.filter(quote => {
+        const quoteDate = new Date(quote.createdAt);
+        return quoteDate.getFullYear() === currentYear && quoteDate.getMonth() === currentMonth;
+      }).length;
+      document.getElementById('monthlyCount').textContent = monthlyCount;
+      
+      // 计算分类统计
+      const categoryMap = {};
+      const favoriteCategoryMap = {};
+      quotes.forEach(quote => {
+        categoryMap[quote.tag] = (categoryMap[quote.tag] || 0) + 1;
+        if (quote.favorite) {
+          favoriteCategoryMap[quote.tag] = (favoriteCategoryMap[quote.tag] || 0) + 1;
+        }
+      });
+      
+      // 计算分类数量
+      const categoryNum = Object.keys(categoryMap).length;
+      categoryCount.textContent = categoryNum;
+      
+      // 渲染分类统计
+      categoryStats.innerHTML = '';
+      Object.entries(categoryMap).forEach(([category, count]) => {
+        const statItem = document.createElement('div');
+        statItem.className = 'flex justify-between items-center p-2 bg-white rounded';
+        statItem.innerHTML = `
+          <span class="text-gray-700">${category}</span>
+          <span class="font-medium text-primary">${count}</span>
+        `;
+        categoryStats.appendChild(statItem);
+      });
+      
+      // 渲染收藏统计
+      const favoriteStats = document.getElementById('favoriteStats');
+      favoriteStats.innerHTML = '';
+      Object.entries(favoriteCategoryMap).forEach(([category, count]) => {
+        const statItem = document.createElement('div');
+        statItem.className = 'flex justify-between items-center p-2 bg-white rounded';
+        statItem.innerHTML = `
+          <span class="text-gray-700">${category}</span>
+          <span class="font-medium text-yellow-500">${count}</span>
+        `;
+        favoriteStats.appendChild(statItem);
+      });
+      
+      // 如果没有收藏统计，显示提示
+      if (Object.keys(favoriteCategoryMap).length === 0) {
+        favoriteStats.innerHTML = '<p class="text-gray-500 text-center py-2">暂无收藏统计</p>';
+      }
+    }
+
+    // 打开设置模态框
+    function openSettingsModal() {
+      settingsModal.classList.remove('hidden');
+      updateStats();
+    }
+
+    // 关闭设置模态框
+    function closeSettingsModal() {
+      settingsModal.classList.add('hidden');
+    }
+
+    // 保存设置
+    function saveSettingsAction() {
+      // 获取选中的主题
+      if (themeLight.checked) {
+        settings.theme = 'light';
+      } else if (themeDark.checked) {
+        settings.theme = 'dark';
+      } else {
+        settings.theme = 'auto';
+      }
+      
+      // 获取选中的随机推荐来源
+      if (randomSourceLocal.checked) {
+        settings.randomSource = 'local';
+      } else {
+        settings.randomSource = 'thirdparty';
+      }
+      
+      // 保存设置到localStorage
+      saveSettings();
+      
+      // 应用主题
+      applyTheme();
+      
+      // 显示成功通知
+      showNotification('成功', '设置已保存', 'success');
+      
+      // 关闭模态框
+      closeSettingsModal();
+    }
+
+    // 导出数据
+    function exportQuotes() {
+      // 获取quotes数据
+      const quotesData = localStorage.getItem('quotes') || '[]';
+      const data = JSON.parse(quotesData);
+      
+      // 转换为JSON字符串
+      const jsonString = JSON.stringify(data, null, 2);
+      
+      // 创建Blob对象
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      
+      // 创建下载链接
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `好词好句_${new Date().toISOString().split('T')[0]}.json`;
+      
+      // 触发下载
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      // 释放URL对象
+      URL.revokeObjectURL(url);
+      
+      // 显示成功通知
+      showNotification('成功', '数据导出成功', 'success');
+    }
+
+    // 导入数据
+    function importQuotes(file) {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        try {
+          // 解析JSON数据
+          const importedData = JSON.parse(e.target.result);
+          
+          // 验证数据格式
+          if (!Array.isArray(importedData)) {
+            throw new Error('数据格式不正确，必须是数组');
+          }
+          
+          // 获取现有数据
+          const existingData = JSON.parse(localStorage.getItem('quotes') || '[]');
+          
+          // 检测并添加新内容
+          let addedCount = 0;
+          const newData = [...existingData];
+          
+          importedData.forEach(importedQuote => {
+            // 检测是否已存在相同内容
+            const isExists = newData.some(existingQuote => 
+              existingQuote.content === importedQuote.content
+            );
+            
+            if (!isExists) {
+              // 确保每个导入的quote有唯一id
+              const quoteWithId = {
+                ...importedQuote,
+                id: importedQuote.id || generateId(),
+                createdAt: importedQuote.createdAt || new Date().toISOString(),
+                updatedAt: importedQuote.updatedAt || new Date().toISOString()
+              };
+              
+              newData.push(quoteWithId);
+              addedCount++;
+            }
+          });
+          
+          // 保存合并后的数据
+          localStorage.setItem('quotes', JSON.stringify(newData));
+          
+          // 重新加载数据
+          loadQuotes();
+          
+          // 重新渲染页面
+          renderQuotes();
+          renderTagFilters();
+          
+          // 显示成功通知
+          showNotification('成功', `数据导入成功，新增 ${addedCount} 条内容`, 'success');
+          
+          // 重置导入控件
+          resetImportControls();
+          
+        } catch (error) {
+          showNotification('错误', '数据导入失败：' + error.message, 'error');
+        }
+      };
+      
+      reader.onerror = function() {
+        showNotification('错误', '文件读取失败', 'error');
+      };
+      
+      reader.readAsText(file);
+    }
+
+    // 重置导入控件
+    function resetImportControls() {
+      importFile.value = '';
+      importActionBtn.disabled = true;
+      importFileName.textContent = '';
+    }
+
+    // 打开导入确认模态框
+    function openImportConfirmModal(file) {
+      // 创建确认模态框
+      const confirmModal = document.createElement('div');
+      confirmModal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+      
+      confirmModal.innerHTML = `
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-sm p-6">
+          <div class="text-center mb-4">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-3">
+              <i class="fa fa-info-circle text-blue-500 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">确认导入</h3>
+            <p class="text-gray-500">系统将检测重复内容，只导入新的好词好句，不会覆盖现有数据，确定要继续吗？</p>
+          </div>
+          <div class="flex justify-center gap-3">
+            <button id="confirmImportCancel" class="btn-outline">取消</button>
+            <button id="confirmImportOk" class="btn-primary">确认导入</button>
+          </div>
+        </div>
+      `;
+      
+      // 添加到页面
+      document.body.appendChild(confirmModal);
+      
+      // 取消按钮事件
+      confirmModal.querySelector('#confirmImportCancel').addEventListener('click', () => {
+        document.body.removeChild(confirmModal);
+      });
+      
+      // 确认按钮事件
+      confirmModal.querySelector('#confirmImportOk').addEventListener('click', () => {
+        importQuotes(file);
+        document.body.removeChild(confirmModal);
+      });
+    }
+
+    // 第一个确认框（带有红线）
+    function openDeleteFirstConfirm() {
+      // 创建确认模态框
+      const confirmModal = document.createElement('div');
+      confirmModal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+      
+      confirmModal.innerHTML = `
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-sm p-6 border-2 border-red-500" data-theme="${document.documentElement.getAttribute('data-theme')}">
+          <div class="text-center mb-4">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-3">
+              <i class="fa fa-exclamation-triangle text-red-500 dark:text-red-400 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-red-700 dark:text-red-400 mb-2">警告：永久删除</h3>
+            <p class="text-gray-600 dark:text-gray-300">您即将删除所有数据，此操作无法恢复。</p>
+            <p class="text-gray-600 dark:text-gray-300 mt-2">注意：删除后，所有好词好句将被永久清除，无法恢复。</p>
+          </div>
+          <div class="flex justify-center gap-3">
+            <button id="deleteFirstCancel" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">取消</button>
+            <button id="deleteFirstConfirm" class="btn-outline">确认继续</button>
+          </div>
+        </div>
+      `;
+      
+      // 添加到页面
+      document.body.appendChild(confirmModal);
+      
+      // 取消按钮事件
+      confirmModal.querySelector('#deleteFirstCancel').addEventListener('click', () => {
+        document.body.removeChild(confirmModal);
+      });
+      
+      // 确认按钮事件
+      confirmModal.querySelector('#deleteFirstConfirm').addEventListener('click', () => {
+        document.body.removeChild(confirmModal);
+        openDeleteSecondConfirm();
+      });
+    }
+
+    // 第二个确认框（要求输入）
+    function openDeleteSecondConfirm() {
+      // 创建确认模态框
+      const confirmModal = document.createElement('div');
+      confirmModal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+      
+      confirmModal.innerHTML = `
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-sm p-6" data-theme="${document.documentElement.getAttribute('data-theme')}">
+          <div class="text-center mb-4">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 mb-3">
+              <i class="fa fa-lock text-red-500 dark:text-red-400 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-red-700 dark:text-red-400 mb-2">请输入确认文本</h3>
+            <p class="text-gray-600 dark:text-gray-300 mb-4">为了确认删除，请输入 "确认删除"。</p>
+            <p class="text-lg font-bold text-red-700 dark:text-red-400 mb-4">数据无价，确认后将无法恢复。</p>
+            <input type="text" id="deleteConfirmInput" placeholder="输入确认文本" class="input-field mb-4">
+          </div>
+          <div class="flex justify-center gap-3">
+            <button id="deleteSecondCancel" class="btn-outline">取消</button>
+            <button id="deleteSecondConfirm" class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300" disabled>确认删除</button>
+          </div>
+        </div>
+      `;
+      
+      // 添加到页面
+      document.body.appendChild(confirmModal);
+      
+      const deleteConfirmInput = confirmModal.querySelector('#deleteConfirmInput');
+      const deleteSecondConfirm = confirmModal.querySelector('#deleteSecondConfirm');
+      
+      // 输入验证
+      deleteConfirmInput.addEventListener('input', () => {
+        if (deleteConfirmInput.value === '确认删除') {
+          deleteSecondConfirm.disabled = false;
+        } else {
+          deleteSecondConfirm.disabled = true;
+        }
+      });
+      
+      // 取消按钮事件
+      confirmModal.querySelector('#deleteSecondCancel').addEventListener('click', () => {
+        document.body.removeChild(confirmModal);
+      });
+      
+      // 确认按钮事件
+      deleteSecondConfirm.addEventListener('click', () => {
+        document.body.removeChild(confirmModal);
+        // 第三个确认：alert警告
+        if (confirm('最后警告：此操作将永久删除所有数据，无法恢复！\n\n您辛苦收集的每一句好词好句都很宝贵，请三思而后行。\n\n确认要继续删除吗？')) {
+          deleteAllData();
+        }
+      });
+    }
+
+    // 删除所有数据
+    function deleteAllData() {
+      // 清空localStorage
+      localStorage.removeItem('quotes');
+      
+      // 重新加载数据
+      quotes = [];
+      
+      // 重新渲染页面
+      renderQuotes();
+      renderTagFilters();
+      
+      // 显示成功通知
+      showNotification('成功', '所有数据已删除', 'success');
+      
+      // 关闭设置模态框
+      closeSettingsModal();
+    }
+    
+    // 打开标签管理模态框
+    function openTagsModal() {
+      // 获取所有唯一标签
+      const uniqueTags = [...new Set(quotes.map(quote => quote.tag))].filter(tag => tag);
+      tags = uniqueTags;
+      tagsToDelete = [];
+      tagsToEdit = {};
+      
+      // 渲染标签列表
+      renderTagsList();
+      
+      // 渲染标签选择器
+      renderTagSelectors();
+      
+      // 显示模态框
+      tagsModal.classList.remove('hidden');
+    }
+    
+    // 关闭标签管理模态框
+    function closeTagsModal() {
+      tagsModal.classList.add('hidden');
+    }
+    
+    // 渲染标签列表
+    function renderTagsList() {
+      tagsList.innerHTML = '';
+      
+      if (tags.length === 0) {
+        tagsList.innerHTML = '<p class="text-gray-500 text-center py-6">没有标签可以管理</p>';
+        return;
+      }
+      
+      // 可用颜色选项
+      const colorOptions = [
+        { bg: 'bg-blue-100', text: 'text-blue-800', name: '蓝色' },
+        { bg: 'bg-green-100', text: 'text-green-800', name: '绿色' },
+        { bg: 'bg-purple-100', text: 'text-purple-800', name: '紫色' },
+        { bg: 'bg-yellow-100', text: 'text-yellow-800', name: '黄色' },
+        { bg: 'bg-red-100', text: 'text-red-800', name: '红色' },
+        { bg: 'bg-pink-100', text: 'text-pink-800', name: '粉色' },
+        { bg: 'bg-indigo-100', text: 'text-indigo-800', name: '靛蓝' },
+        { bg: 'bg-teal-100', text: 'text-teal-800', name: '青色' },
+        { bg: 'bg-gray-100', text: 'text-gray-800', name: '灰色' }
+      ];
+      
+      tags.forEach(tag => {
+        const tagItem = document.createElement('div');
+        tagItem.className = 'bg-gray-50 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3';
+        
+        const tagCount = quotes.filter(quote => quote.tag === tag).length;
+        const currentColor = getTagColor(tag);
+        
+        tagItem.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <input type="checkbox" id="tag-${tag}" class="w-4 h-4 text-primary focus:ring-primary/50">
+            <div>
+              <div class="flex items-center space-x-2">
+                <input type="text" value="${tag}" class="input-field w-32" data-original="${tag}">
+                <span class="text-sm text-gray-500">(${tagCount} 条)</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4 w-full md:w-auto">
+            <div class="flex items-center space-x-2">
+              <span class="text-sm text-gray-500">颜色:</span>
+              <select class="tag-color-select input-field text-sm w-32" data-tag="${tag}">
+                ${colorOptions.map(color => `
+                  <option value="${color.bg},${color.text}" ${currentColor.bg === color.bg ? 'selected' : ''}>
+                    ${color.name}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+            <div class="flex space-x-2">
+              <button class="text-red-500 hover:text-red-700 transition-colors p-1 rounded-full hover:bg-red-10" title="删除">
+                <i class="fa fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        
+        // 添加事件监听器
+        const checkbox = tagItem.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            tagsToDelete.push(tag);
+          } else {
+            tagsToDelete = tagsToDelete.filter(t => t !== tag);
+          }
+        });
+        
+        const input = tagItem.querySelector('input[type="text"]');
+        input.addEventListener('input', (e) => {
+          const newValue = e.target.value.trim();
+          const originalValue = e.target.dataset.original;
+          if (newValue && newValue !== originalValue) {
+            tagsToEdit[originalValue] = newValue;
+          } else {
+            delete tagsToEdit[originalValue];
+          }
+        });
+        
+        const colorSelect = tagItem.querySelector('.tag-color-select');
+        colorSelect.addEventListener('change', (e) => {
+          const [bg, text] = e.target.value.split(',');
+          if (!settings.tagColors) {
+            settings.tagColors = {};
+          }
+          settings.tagColors[tag] = { bg, text };
+          saveSettings();
+          renderQuotes();
+          renderTagFilters();
+        });
+        
+        const deleteBtn = tagItem.querySelector('.text-red-500');
+        deleteBtn.addEventListener('click', () => {
+          tags = tags.filter(t => t !== tag);
+          tagsToDelete = tagsToDelete.filter(t => t !== tag);
+          delete tagsToEdit[tag];
+          delete settings.tagColors[tag];
+          saveSettings();
+          renderTagsList();
+          renderTagSelectors();
+          renderQuotes();
+          renderTagFilters();
+        });
+        
+        tagsList.appendChild(tagItem);
+      });
+    }
+    
+    // 渲染标签选择器
+    function renderTagSelectors() {
+      // 清空选择器
+      sourceTag.innerHTML = '';
+      targetTag.innerHTML = '';
+      
+      // 添加默认选项
+      const defaultOption1 = document.createElement('option');
+      defaultOption1.value = '';
+      defaultOption1.textContent = '选择标签';
+      sourceTag.appendChild(defaultOption1);
+      
+      const defaultOption2 = document.createElement('option');
+      defaultOption2.value = '';
+      defaultOption2.textContent = '选择目标标签';
+      targetTag.appendChild(defaultOption2);
+      
+      // 添加标签选项
+      tags.forEach(tag => {
+        const option1 = document.createElement('option');
+        option1.value = tag;
+        option1.textContent = tag;
+        sourceTag.appendChild(option1);
+        
+        const option2 = document.createElement('option');
+        option2.value = tag;
+        option2.textContent = tag;
+        targetTag.appendChild(option2);
+      });
+    }
+    
+    // 合并标签
+    function mergeTags() {
+      const source = sourceTag.value;
+      const target = targetTag.value;
+      
+      if (!source || !target) {
+        showNotification('错误', '请选择要合并的标签和目标标签', 'error');
+        return;
+      }
+      
+      if (source === target) {
+        showNotification('错误', '不能将标签合并到自身', 'error');
+        return;
+      }
+      
+      // 更新所有使用源标签的引用
+      quotes.forEach(quote => {
+        if (quote.tag === source) {
+          quote.tag = target;
+        }
+      });
+      
+      // 保存数据
+      saveQuotes();
+      
+      // 更新标签列表
+      tags = tags.filter(tag => tag !== source);
+      renderTagsList();
+      renderTagSelectors();
+      
+      // 显示成功通知
+      showNotification('成功', `标签 "${source}" 已合并到 "${target}"`, 'success');
+    }
+    
+    // 保存标签更改
+    function saveTagsChanges() {
+      let changesMade = false;
+      
+      // 应用标签编辑
+      Object.entries(tagsToEdit).forEach(([original, newTag]) => {
+        if (newTag && newTag !== original) {
+          quotes.forEach(quote => {
+            if (quote.tag === original) {
+              quote.tag = newTag;
+            }
+          });
+          changesMade = true;
+        }
+      });
+      
+      // 应用标签删除
+      if (tagsToDelete.length > 0) {
+        // 将删除的标签替换为默认标签
+        quotes.forEach(quote => {
+          if (tagsToDelete.includes(quote.tag)) {
+            quote.tag = '未分类';
+          }
+        });
+        changesMade = true;
+      }
+      
+      if (changesMade) {
+        // 保存数据
+        saveQuotes();
+        
+        // 重新渲染页面
+        renderQuotes();
+        renderTagFilters();
+        
+        // 显示成功通知
+        showNotification('成功', '标签更改已保存', 'success');
+      }
+      
+      // 关闭模态框
+      closeTagsModal();
+    }
+    
+    // 切换筛选菜单显示
+    function toggleFilterMenu() {
+      filterMenu.classList.toggle('hidden');
+    }
+    
+    // 应用筛选
+    function applyFilters() {
+      // 更新筛选状态
+      filterState.favorite = filterFavorite.checked;
+      filterState.exact = filterExact.checked;
+      filterState.dateFrom = filterDateFrom.value;
+      filterState.dateTo = filterDateTo.value;
+      
+      // 关闭筛选菜单
+      filterMenu.classList.add('hidden');
+      
+      // 重新渲染内容
+      renderQuotes();
+    }
+    
+    // 重置筛选
+    function resetFilters() {
+      // 重置筛选状态
+      filterFavorite.checked = false;
+      filterExact.checked = false;
+      filterDateFrom.value = '';
+      filterDateTo.value = '';
+      
+      // 更新筛选状态
+      filterState.favorite = false;
+      filterState.exact = false;
+      filterState.dateFrom = '';
+      filterState.dateTo = '';
+    }
+    
+    // 清除筛选
+    function clearFilters() {
+      resetFilters();
+      
+      // 重置排序状态
+      sortState = 'newest';
+      sortText.textContent = '最新添加';
+      
+      // 重新渲染内容
+      renderQuotes();
+    }
+    
+    // 切换排序菜单显示
+    function toggleSortMenu() {
+      sortMenu.classList.toggle('hidden');
+    }
+    
+    // 设置排序方式
+    function setSort(sortType, sortLabel) {
+      sortState = sortType;
+      sortText.textContent = sortLabel;
+      sortMenu.classList.add('hidden');
+      renderQuotes();
+    }
+
+    // 添加事件监听器
+    function addEventListeners() {
+      // 添加内容按钮
+      addQuoteBtn.addEventListener('click', openAddModal);
+      emptyStateAddBtn.addEventListener('click', openAddModal);
+      
+      // 关闭模态框按钮
+      closeModalBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+      modalOverlay.addEventListener('click', closeModal);
+      
+      // 保存内容
+      quoteForm.addEventListener('submit', saveQuote);
+      
+      // 分类选择变化
+      quoteTagSelect.addEventListener('change', handleTagSelectChange);
+      
+      // 设置按钮
+      settingsBtn.addEventListener('click', openSettingsModal);
+      closeSettingsBtn.addEventListener('click', closeSettingsModal);
+      cancelSettingsBtn.addEventListener('click', closeSettingsModal);
+      settingsModalOverlay.addEventListener('click', closeSettingsModal);
+      saveSettingsBtn.addEventListener('click', saveSettingsAction);
+      
+      // 导入导出按钮
+      exportBtn.addEventListener('click', exportQuotes);
+      document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+      importBtn.addEventListener('click', () => importFile.click());
+      importActionBtn.addEventListener('click', () => {
+        if (importFile.files.length > 0) {
+          openImportConfirmModal(importFile.files[0]);
+        }
+      });
+      
+      // 文件输入变化事件
+      importFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          importFileName.textContent = file.name;
+          importActionBtn.disabled = false;
+        } else {
+          importFileName.textContent = '';
+          importActionBtn.disabled = true;
+        }
+      });
+      
+      // 删除所有数据按钮
+      deleteAllBtn.addEventListener('click', openDeleteFirstConfirm);
+      
+      // 管理标签按钮
+      manageTagsBtn.addEventListener('click', openTagsModal);
+      
+      // 标签管理模态框事件
+      closeTagsBtn.addEventListener('click', closeTagsModal);
+      cancelTagsBtn.addEventListener('click', closeTagsModal);
+      tagsModalOverlay.addEventListener('click', closeTagsModal);
+      saveTagsBtn.addEventListener('click', saveTagsChanges);
+      mergeTagsBtn.addEventListener('click', mergeTags);
+      
+      // 筛选菜单事件
+      filterBtn.addEventListener('click', toggleFilterMenu);
+      applyFilterBtn.addEventListener('click', applyFilters);
+      resetFilterBtn.addEventListener('click', resetFilters);
+      
+      // 点击页面其他地方关闭筛选菜单
+      document.addEventListener('click', (e) => {
+        if (!filterBtn.contains(e.target) && !filterMenu.contains(e.target)) {
+          filterMenu.classList.add('hidden');
+        }
+        
+        // 点击页面其他地方关闭排序菜单
+        if (!sortBtn.contains(e.target) && !sortMenu.contains(e.target)) {
+          sortMenu.classList.add('hidden');
+        }
+      });
+      
+      // 排序菜单事件
+      sortBtn.addEventListener('click', toggleSortMenu);
+      
+      // 排序选项点击事件
+      sortOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+          const sortType = e.target.dataset.sort;
+          const sortLabel = e.target.textContent.trim();
+          setSort(sortType, sortLabel);
+        });
+      });
+      
+      // 随机推荐按钮
+      randomQuoteBtn.addEventListener('click', openRandomQuoteModal);
+      
+      // 关闭随机推荐模态框
+      closeRandomModalBtn.addEventListener('click', closeRandomQuoteModal);
+      closeRandomBtn.addEventListener('click', closeRandomQuoteModal);
+      randomModalOverlay.addEventListener('click', closeRandomQuoteModal);
+      
+      // 确认删除
+      cancelDeleteBtn.addEventListener('click', closeConfirmDeleteModal);
+      confirmDeleteBtn.addEventListener('click', deleteQuote);
+      confirmModalOverlay.addEventListener('click', closeConfirmDeleteModal);
+      
+      // 关闭通知
+      closeNotificationBtn.addEventListener('click', hideNotification);
+      
+      // 搜索输入
+      searchInput.addEventListener('input', renderQuotes);
+      
+      // 批量操作事件
+      selectAllBtn.addEventListener('click', toggleSelectAll);
+      batchDeleteBtn.addEventListener('click', batchDelete);
+      applyBatchTagBtn.addEventListener('click', applyBatchTag);
+      
+      // 批量标签菜单
+      batchTagBtn.addEventListener('click', () => {
+        document.getElementById('batchTagMenu').classList.toggle('hidden');
+      });
+      
+      // 点击页面其他地方关闭批量标签菜单
+      document.addEventListener('click', (e) => {
+        if (!document.getElementById('batchTagBtn').contains(e.target) && !document.getElementById('batchTagMenu').contains(e.target)) {
+          document.getElementById('batchTagMenu').classList.add('hidden');
+        }
+      });
+      
+      // 阅读模式事件
+      const readingModeBtn = document.getElementById('readingModeBtn');
+      readingModeBtn.addEventListener('click', toggleReadingMode);
+    }
+
+    // 导出为PDF
+    function exportToPDF() {
+      if (quotes.length === 0) {
+        showNotification('错误', '没有内容可以导出', 'error');
+        return;
+      }
+      
+      // 创建一个临时的HTML元素来容纳所有内容
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      tempContainer.style.width = '800px';
+      tempContainer.style.padding = '20px';
+      tempContainer.style.backgroundColor = 'white';
+      tempContainer.style.color = 'black';
+      tempContainer.style.fontFamily = 'Arial, sans-serif';
+      tempContainer.style.lineHeight = '1.6';
+      
+      // 添加标题
+      const title = document.createElement('h1');
+      title.textContent = '好词好句收集';
+      title.style.textAlign = 'center';
+      title.style.color = '#4F46E5';
+      title.style.marginBottom = '20px';
+      tempContainer.appendChild(title);
+      
+      // 添加导出信息
+      const info = document.createElement('div');
+      info.innerHTML = `
+        <p>导出日期: ${new Date().toLocaleDateString()}</p>
+        <p>总条数: ${quotes.length}</p>
+      `;
+      info.style.borderBottom = '1px solid #ccc';
+      info.style.paddingBottom = '10px';
+      info.style.marginBottom = '20px';
+      tempContainer.appendChild(info);
+      
+      // 添加所有引用
+      quotes.forEach((quote, index) => {
+        const quoteDiv = document.createElement('div');
+        quoteDiv.style.marginBottom = '30px';
+        quoteDiv.style.padding = '20px';
+        quoteDiv.style.borderLeft = '4px solid #4F46E5';
+        quoteDiv.style.backgroundColor = '#f9f9f9';
+        
+        const content = document.createElement('div');
+        content.textContent = `${index + 1}. "${quote.content}"`;
+        content.style.fontSize = '16px';
+        content.style.fontStyle = 'italic';
+        content.style.marginBottom = '10px';
+        quoteDiv.appendChild(content);
+        
+        if (quote.author) {
+          const author = document.createElement('div');
+          author.textContent = `— ${quote.author}`;
+          author.style.textAlign = 'right';
+          author.style.marginBottom = '10px';
+          quoteDiv.appendChild(author);
+        }
+        
+        const meta = document.createElement('div');
+        meta.innerHTML = `
+          <span style="font-size: 12px; color: #666;">标签: ${quote.tag} | 添加于: ${formatDate(quote.createdAt)}</span>
+        `;
+        quoteDiv.appendChild(meta);
+        
+        tempContainer.appendChild(quoteDiv);
+      });
+      
+      // 将临时容器添加到文档中
+      document.body.appendChild(tempContainer);
+      
+      // 使用html2canvas将HTML转换为图片
+      html2canvas(tempContainer, { scale: 2 }).then(canvas => {
+        // 创建PDF
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+        
+        // 计算PDF页面大小
+        const imgWidth = 210; // A4宽度
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // 计算需要多少页
+        const pageHeight = 297; // A4高度
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        // 添加第一页
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        // 添加后续页面
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+        
+        // 保存PDF
+        pdf.save(`好词好句_${new Date().toISOString().split('T')[0]}.pdf`);
+        
+        // 显示成功通知
+        showNotification('成功', 'PDF导出成功', 'success');
+        
+        // 移除临时容器
+        document.body.removeChild(tempContainer);
+      }).catch(error => {
+        console.error('PDF导出失败:', error);
+        showNotification('错误', 'PDF导出失败', 'error');
+        // 移除临时容器
+        document.body.removeChild(tempContainer);
+      });
+    }
+    
+    // 切换阅读模式
+    function toggleReadingMode() {
+      isReadingMode = !isReadingMode;
+      const body = document.body;
+      const readingModeBtn = document.getElementById('readingModeBtn');
+      const searchSection = document.querySelector('.mb-8.bg-white.rounded-xl.shadow-card.p-4.animate-fade-in');
+      
+      if (isReadingMode) {
+        // 进入阅读模式
+        body.classList.add('reading-mode');
+        readingModeBtn.innerHTML = '<i class="fa fa-times"></i><span>退出阅读</span>';
+        readingModeBtn.classList.remove('btn-outline');
+        readingModeBtn.classList.add('btn-primary');
+        
+        // 隐藏搜索和筛选区域
+        if (searchSection) {
+          searchSection.classList.add('hidden');
+        }
+        
+        // 隐藏批量操作工具栏
+        batchActions.classList.add('hidden');
+        
+        // 重置当前页码
+        currentPage = 0;
+        
+        // 筛选当前显示的内容
+        filterQuotesForReading();
+        
+        // 渲染当前页内容
+        renderReadingPage();
+        
+        // 添加翻页按钮
+        addNavigationButtons();
+      } else {
+        // 退出阅读模式
+        body.classList.remove('reading-mode');
+        readingModeBtn.innerHTML = '<i class="fa fa-book"></i><span>阅读模式</span>';
+        readingModeBtn.classList.remove('btn-primary');
+        readingModeBtn.classList.add('btn-outline');
+        
+        // 显示搜索和筛选区域
+        if (searchSection) {
+          searchSection.classList.remove('hidden');
+        }
+        
+        // 移除翻页按钮
+        removeNavigationButtons();
+        
+        // 重新渲染所有引用
+        renderQuotes();
+      }
+    }
+    
+    // 筛选当前显示的内容
+    function filterQuotesForReading() {
+      let filtered = quotes;
+      
+      // 应用当前筛选条件
+      if (currentFilter === 'favorite') {
+        filtered = filtered.filter(quote => quote.favorite);
+      } else if (currentFilter) {
+        filtered = filtered.filter(quote => quote.tag.toLowerCase() === currentFilter.toLowerCase());
+      }
+      
+      // 应用搜索筛选
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      if (searchTerm) {
+        if (filterState.exact) {
+          filtered = filtered.filter(quote => 
+            quote.content.toLowerCase() === searchTerm || 
+            quote.author.toLowerCase() === searchTerm || 
+            quote.tag.toLowerCase() === searchTerm
+          );
+        } else {
+          filtered = filtered.filter(quote => 
+            quote.content.toLowerCase().includes(searchTerm) || 
+            quote.author.toLowerCase().includes(searchTerm) || 
+            quote.tag.toLowerCase().includes(searchTerm)
+          );
+        }
+      }
+      
+      // 应用收藏筛选
+      if (filterState.favorite) {
+        filtered = filtered.filter(quote => quote.favorite);
+      }
+      
+      // 应用日期范围筛选
+      if (filterState.dateFrom || filterState.dateTo) {
+        filtered = filtered.filter(quote => {
+          const quoteDate = new Date(quote.createdAt || quote.updatedAt || new Date());
+          let matches = true;
+          
+          if (filterState.dateFrom) {
+            const fromDate = new Date(filterState.dateFrom);
+            matches = quoteDate >= fromDate;
+          }
+          
+          if (matches && filterState.dateTo) {
+            const toDate = new Date(filterState.dateTo);
+            toDate.setHours(23, 59, 59, 999);
+            matches = quoteDate <= toDate;
+          }
+          
+          return matches;
+        });
+      }
+      
+      // 应用排序
+      switch (sortState) {
+        case 'newest':
+          filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          break;
+        case 'oldest':
+          filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+          break;
+        case 'author-asc':
+          filtered.sort((a, b) => (a.author || '').localeCompare(b.author || ''));
+          break;
+        case 'author-desc':
+          filtered.sort((a, b) => (b.author || '').localeCompare(a.author || ''));
+          break;
+        case 'tag-asc':
+          filtered.sort((a, b) => a.tag.localeCompare(b.tag));
+          break;
+        case 'tag-desc':
+          filtered.sort((a, b) => b.tag.localeCompare(a.tag));
+          break;
+      }
+      
+      filteredQuotesForReading = filtered;
+    }
+    
+    // 渲染阅读模式下的当前页
+    function renderReadingPage() {
+      quotesContainer.innerHTML = '';
+      
+      if (filteredQuotesForReading.length === 0) {
+        quotesContainer.innerHTML = `
+          <div class="col-span-full flex flex-col items-center justify-center py-16 text-center animate-fade-in">
+            <div class="bg-gray-100 p-6 rounded-full mb-4">
+              <i class="fa fa-search text-gray-400 text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">没有找到匹配的内容</h3>
+            <p class="text-gray-500 mb-6 max-w-md">尝试调整搜索关键词或标签筛选</p>
+            <button onclick="toggleReadingMode()" class="btn-primary">
+              <i class="fa fa-times mr-1"></i> 退出阅读模式
+            </button>
+          </div>
+        `;
+        return;
+      }
+      
+      // 显示当前页内容
+      const quote = filteredQuotesForReading[currentPage];
+      const quoteCard = createQuoteCard(quote);
+      quotesContainer.appendChild(quoteCard);
+    }
+    
+    // 添加导航按钮
+    function addNavigationButtons() {
+      // 检查是否已存在导航按钮
+      if (document.getElementById('prevBtn')) return;
+      
+      // 创建上一页按钮
+      const prevBtn = document.createElement('button');
+      prevBtn.id = 'prevBtn';
+      prevBtn.className = 'reading-nav prev';
+      prevBtn.innerHTML = '<i class="fa fa-chevron-left"></i>';
+      prevBtn.onclick = goToPrevPage;
+      document.body.appendChild(prevBtn);
+      
+      // 创建下一页按钮
+      const nextBtn = document.createElement('button');
+      nextBtn.id = 'nextBtn';
+      nextBtn.className = 'reading-nav next';
+      nextBtn.innerHTML = '<i class="fa fa-chevron-right"></i>';
+      nextBtn.onclick = goToNextPage;
+      document.body.appendChild(nextBtn);
+    }
+    
+    // 移除导航按钮
+    function removeNavigationButtons() {
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      if (prevBtn) prevBtn.remove();
+      if (nextBtn) nextBtn.remove();
+    }
+    
+    // 上一页
+    function goToPrevPage() {
+      currentPage = (currentPage - 1 + filteredQuotesForReading.length) % filteredQuotesForReading.length;
+      renderReadingPage();
+    }
+    
+    // 下一页
+    function goToNextPage() {
+      currentPage = (currentPage + 1) % filteredQuotesForReading.length;
+      renderReadingPage();
+    }
+    
+    // 初始化应用
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
